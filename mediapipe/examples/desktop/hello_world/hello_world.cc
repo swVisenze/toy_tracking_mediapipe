@@ -27,6 +27,12 @@ absl::Status PrintHelloWorld() {
       ParseTextProtoOrDie<CalculatorGraphConfig>(R"pb(
         input_stream: "in"
         output_stream: "out"
+        profiler_config {
+          trace_enabled: true
+          enable_profiler: true
+          trace_log_count: 5
+          trace_log_path: "/Users/siwei/Desktop/proj/ai/mediapipe_trace"
+        }
         node {
           calculator: "PassThroughCalculator"
           input_stream: "in"
@@ -54,7 +60,7 @@ absl::Status PrintHelloWorld() {
   mediapipe::Packet packet;
   // Get the output packets std::string.
   while (poller.Next(&packet)) {
-    LOG(INFO) << packet.Get<std::string>();
+    LOG(INFO) << packet.Get<std::string>() <<" at: " << packet.Timestamp();
   }
   return graph.WaitUntilDone();
 }

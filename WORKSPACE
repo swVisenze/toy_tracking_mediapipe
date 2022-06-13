@@ -413,3 +413,13 @@ libedgetpu_dependencies()
 
 load("@coral_crosstool//:configure.bzl", "cc_crosstool")
 cc_crosstool(name = "crosstool")
+
+load("@build_bazel_rules_android//android:rules.bzl", "android_sdk_repository", "android_ndk_repository")
+
+android_sdk_repository(
+  name = "androidsdk"
+)
+android_ndk_repository(
+  name="androidndk",
+  api_level=21
+)
