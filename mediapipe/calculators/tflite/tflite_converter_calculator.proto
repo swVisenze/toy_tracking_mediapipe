@@ -66,4 +66,16 @@ message TfLiteConverterCalculatorOptions {
     optional float min = 1;
     optional float max = 2;
   }
+
+  enum OutputType {
+      NHWC = 0;
+      NCHW = 1;
+  }
+
+  // change to NCHW only take effect with CPU
+  optional OutputType output_type = 10 [default = NHWC];
+
+  // only take effect in CPU
+  repeated float norms = 11;
+  repeated float means = 12;
 }

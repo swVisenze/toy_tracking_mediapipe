@@ -200,6 +200,144 @@ TEST_F(TfLiteConverterCalculatorTest, RandomMatrixRowMajor) {
   }
 }
 
+TEST_F(TfLiteConverterCalculatorTest, OutputTypeNCHW) {
+  CalculatorGraph graph;
+  // Run the calculator and verify that one output is generated.
+  CalculatorGraphConfig graph_config =
+        mediapipe::ParseTextProtoOrDie<CalculatorGraphConfig>(R"pb(
+        input_stream: "input_image"
+        node {
+          calculator: "TfLiteConverterCalculator"
+          input_stream: "IMAGE:input_image"
+          output_stream: "TENSORS:tensor"
+          options: {
+            [mediapipe.TfLiteConverterCalculatorOptions.ext] {
+              output_type: NCHW
+              zero_center: false
+              norms: 1
+              norms: 1
+              norms: 1
+              means: 0
+              means: 0
+              means: 0
+           }
+          }
+        }
+      )pb");
+  std::vector<Packet> output_packets;
+  tool::AddVectorSink("tensor", &graph_config, &output_packets);
+
+  // Run the graph.
+  MP_ASSERT_OK(graph.Initialize(graph_config));
+  MP_ASSERT_OK(graph.StartRun({}));
+
+  uint8 input_data[12] = {0,1,2,3,4,5,6,7,8,9,10,11};
+  ImageFrame input_image(
+        ImageFormat::SRGB,
+        2, 2, 2*3, input_data, [](uint8*) {});
+
+  MP_ASSERT_OK(graph.AddPacketToInputStream(
+    "input_image",
+    MakePacket<ImageFrame>(std::move(input_image)).At(Timestamp(0))));
+
+  // Wait until the calculator done processing.
+  MP_ASSERT_OK(graph.WaitUntilIdle());
+
+  // Get and process results.
+  const std::vector<TfLiteTensor>& tensor_vec =
+        output_packets[0].Get<std::vector<TfLiteTensor>>();
+  EXPECT_EQ(1, tensor_vec.size());
+
+  const TfLiteTensor* tensor = &tensor_vec[0];
+  EXPECT_EQ(kTfLiteFloat32, tensor->type);
+  const float* tensor_buffer = tensor->data.f;
+  EXPECT_FLOAT_EQ(0.0f, tensor_buffer[0]);
+  EXPECT_FLOAT_EQ(3.0f, tensor_buffer[1]);
+  EXPECT_FLOAT_EQ(6.0f, tensor_buffer[2]);
+  EXPECT_FLOAT_EQ(9.0f, tensor_buffer[3]);
+  EXPECT_FLOAT_EQ(1.0f, tensor_buffer[4]);
+  EXPECT_FLOAT_EQ(4.0f, tensor_buffer[5]);
+  EXPECT_FLOAT_EQ(7.0f, tensor_buffer[6]);
+  EXPECT_FLOAT_EQ(10.0f, tensor_buffer[7]);
+  EXPECT_FLOAT_EQ(2.0f, tensor_buffer[8]);
+  EXPECT_FLOAT_EQ(5.0f, tensor_buffer[9]);
+  EXPECT_FLOAT_EQ(8.0f, tensor_buffer[10]);
+  EXPECT_FLOAT_EQ(11.0f, tensor_buffer[11]);
+  // Fully close graph at end, otherwise calculator+tensors are destroyed
+  // after calling WaitUntilDone().
+  MP_ASSERT_OK(graph.CloseInputStream("input_image"));
+  MP_ASSERT_OK(graph.WaitUntilDone());
+}
+
+TEST_F(TfLiteConverterCalculatorTest, OutputTypeNormAndMean) {
+  CalculatorGraph graph;
+  // Run the calculator and verify that one output is generated.
+  CalculatorGraphConfig graph_config =
+        mediapipe::ParseTextProtoOrDie<CalculatorGraphConfig>(R"pb(
+        input_stream: "input_image"
+        node {
+          calculator: "TfLiteConverterCalculator"
+          input_stream: "IMAGE:input_image"
+          output_stream: "TENSORS:tensor"
+          options: {
+            [mediapipe.TfLiteConverterCalculatorOptions.ext] {
+              # output_type: NCHW
+              zero_center: false
+              norms: 2
+              norms: 4
+              norms: 6
+              means: 4
+              means: 6
+              means: 8
+           }
+          }
+        }
+      )pb");
+  std::vector<Packet> output_packets;
+  tool::AddVectorSink("tensor", &graph_config, &output_packets);
+
+  // Run the graph.
+  MP_ASSERT_OK(graph.Initialize(graph_config));
+  MP_ASSERT_OK(graph.StartRun({}));
+
+  uint8 input_data[12] = {0,1,2,3,4,5,6,7,8,9,10,11};
+  ImageFrame input_image(
+        ImageFormat::SRGB,
+        2, 2, 2*3, input_data, [](uint8*) {});
+
+  MP_ASSERT_OK(graph.AddPacketToInputStream(
+  "input_image",
+  MakePacket<ImageFrame>(std::move(input_image)).At(Timestamp(0))));
+
+  // Wait until the calculator done processing.
+  MP_ASSERT_OK(graph.WaitUntilIdle());
+
+  // Get and process results.
+  const std::vector<TfLiteTensor>& tensor_vec =
+        output_packets[0].Get<std::vector<TfLiteTensor>>();
+  EXPECT_EQ(1, tensor_vec.size());
+
+  const TfLiteTensor* tensor = &tensor_vec[0];
+  EXPECT_EQ(kTfLiteFloat32, tensor->type);
+  const float* tensor_buffer = tensor->data.f;
+  EXPECT_FLOAT_EQ(-2.0f, tensor_buffer[0]);
+  EXPECT_FLOAT_EQ(-1.25f, tensor_buffer[1]);
+  EXPECT_FLOAT_EQ(-1.0f, tensor_buffer[2]);
+  EXPECT_FLOAT_EQ(-0.5f, tensor_buffer[3]);
+  EXPECT_FLOAT_EQ(-0.5f, tensor_buffer[4]);
+  EXPECT_FLOAT_EQ(-0.5f, tensor_buffer[5]);
+  EXPECT_FLOAT_EQ(1.0f, tensor_buffer[6]);
+  EXPECT_FLOAT_EQ(0.25f, tensor_buffer[7]);
+  EXPECT_FLOAT_EQ(0.0f, tensor_buffer[8]);
+  EXPECT_FLOAT_EQ(2.5f, tensor_buffer[9]);
+  EXPECT_FLOAT_EQ(1.0f, tensor_buffer[10]);
+  EXPECT_FLOAT_EQ(0.5f, tensor_buffer[11]);
+  // Fully close graph at end, otherwise calculator+tensors are destroyed
+  // after calling WaitUntilDone().
+  MP_ASSERT_OK(graph.CloseInputStream("input_image"));
+  MP_ASSERT_OK(graph.WaitUntilDone());
+}
+
 TEST_F(TfLiteConverterCalculatorTest, CustomDivAndSub) {
   CalculatorGraph graph;
   // Run the calculator and verify that one output is generated.

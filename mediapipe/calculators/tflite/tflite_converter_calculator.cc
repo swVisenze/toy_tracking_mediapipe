@@ -167,6 +167,10 @@ class TfLiteConverterCalculator : public CalculatorBase {
   bool row_major_matrix_ = false;
   bool use_quantized_tensors_ = false;
   int max_num_channels_ = 3;
+  TfLiteConverterCalculatorOptions::OutputType output_type_;
+  std::vector<float> norms_;
+  std::vector<float> means_;
+
 };
 REGISTER_CALCULATOR(TfLiteConverterCalculator);
 
@@ -282,6 +286,7 @@ absl::Status TfLiteConverterCalculator::Close(CalculatorContext* cc) {
 }
 
 absl::Status TfLiteConverterCalculator::ProcessCPU(CalculatorContext* cc) {
+
   if (cc->Inputs().HasTag(kImageFrameTag)) {
     if (cc->Inputs().Tag(kImageFrameTag).IsEmpty()) {
       return absl::OkStatus();
@@ -329,8 +334,15 @@ absl::Status TfLiteConverterCalculator::ProcessCPU(CalculatorContext* cc) {
 
     const int tensor_idx = interpreter_->inputs()[0];
     TfLiteTensor* tensor = interpreter_->tensor(tensor_idx);
-    interpreter_->ResizeInputTensor(tensor_idx,
-                                    {height, width, channels_preserved});
+    if(output_type_ == TfLiteConverterCalculatorOptions::NHWC) {
+      interpreter_->ResizeInputTensor(tensor_idx,
+                                      {height, width, channels_preserved});
+    } else if(output_type_ == TfLiteConverterCalculatorOptions::NCHW) {
+      interpreter_->ResizeInputTensor(tensor_idx,
+                                      {height, width, channels_preserved});
+    } else {
+      RET_CHECK_FAIL() << "unknown CPU output type ";
+    }
     interpreter_->AllocateTensors();
 
     // Copy image data into tensor.
@@ -631,6 +643,30 @@ absl::Status TfLiteConverterCalculator::LoadOptions(CalculatorContext* cc) {
   const auto& options =
       cc->Options<::mediapipe::TfLiteConverterCalculatorOptions>();
 
+  // get output type
+  output_type_ = options.output_type();
+//  LOG(INFO) << "output_type_: " << output_type_;
+
+  // get norms and means
+  int norms_size_ = options.norms_size();
+  if(norms_size_ > 0) {
+    for(int i=0; i<norms_size_; i++) {
+      norms_.push_back(options.norms(i));
+    }
+  }
+//  for (float val: norms_) {
+//    LOG(INFO) << val << ' ';
+//  }
+  int means_size_ = options.means_size();
+  if(means_size_ > 0) {
+    for(int i=0; i<means_size_; i++) {
+      means_.push_back(options.means(i));
+    }
+  }
+//  for (float val: means_) {
+//    LOG(INFO) << val << ' ';
+//  }
+
   // if zero_center, set output float range to match [-1, 1] as specified in
   // calculator proto.
   if (options.zero_center()) {
@@ -686,6 +722,9 @@ absl::Status TfLiteConverterCalculator::NormalizeImage(
   const int channels_preserved = std::min(channels, max_num_channels_);
   const int channels_ignored = channels - channels_preserved;
 
+  int one_channel_size = height * width;
+//  LOG(INFO) << "output_range_: "<< output_range_.has_value() << output_range_->first <<" "<<output_range_->second;
+//  LOG(INFO) << "channels_preserved: "<<channels_preserved;
   if (output_range_.has_value()) {
     // If the output float range is set and we are not using custom
     // normalization, normalize the pixel values from [0, 255] to the specified
@@ -700,11 +739,36 @@ absl::Status TfLiteConverterCalculator::NormalizeImage(
           (flip_vertically ? height - 1 - i : i) * image_frame.WidthStep());
       for (int j = 0; j < width; ++j) {
         for (int c = 0; c < channels_preserved; ++c) {
-          *tensor_ptr++ = *image_ptr++ * scale + bias;
+          if(output_type_ == TfLiteConverterCalculatorOptions::NHWC) {
+            *tensor_ptr++ = *image_ptr++ * scale + bias;
+          } else if (output_type_ == TfLiteConverterCalculatorOptions::NCHW) {
+            tensor_ptr[one_channel_size * c + i * width + j] = *image_ptr++ * scale + bias;
+          } else {
+            RET_CHECK_FAIL() << "unknown output type in NormalizeImage";
+          }
         }
         image_ptr += channels_ignored;
       }
     }
+  } else if(means_.size() == channels_preserved && norms_.size() == channels_preserved) {
+//      LOG(INFO) << "process mean and norm ";
+      for (int i = 0; i < height; ++i) {
+          const T* image_ptr = reinterpret_cast<const T*>(
+                  image_frame.PixelData() +
+                  (flip_vertically ? height - 1 - i : i) * image_frame.WidthStep());
+          for (int j = 0; j < width; ++j) {
+              for (int c = 0; c < channels_preserved; ++c) {
+                  if(output_type_ == TfLiteConverterCalculatorOptions::NHWC) {
+                      *tensor_ptr++ = (*image_ptr++ - means_[c]) * 1.0 / norms_[c];
+                  } else if (output_type_ == TfLiteConverterCalculatorOptions::NCHW) {
+                      tensor_ptr[one_channel_size * c + i * width + j] = (*image_ptr++ - means_[c]) * 1.0 / norms_[c];
+                  } else {
+                      RET_CHECK_FAIL() << "unknown output type in NormalizeImage";
+                  }
+              }
+              image_ptr += channels_ignored;
+          }
+      }
   } else {
     // [0,1], scale only (bias == 0)
     // Verified that there are no precision issues with 1.0f / 255.0f expression
@@ -715,7 +779,13 @@ absl::Status TfLiteConverterCalculator::NormalizeImage(
           (flip_vertically ? height - 1 - i : i) * image_frame.WidthStep());
       for (int j = 0; j < width; ++j) {
         for (int c = 0; c < channels_preserved; ++c) {
-          *tensor_ptr++ = *image_ptr++ * scale;
+          if(output_type_ == TfLiteConverterCalculatorOptions::NHWC) {
+            *tensor_ptr++ = *image_ptr++ * scale;
+          } else if (output_type_ == TfLiteConverterCalculatorOptions::NCHW) {
+            tensor_ptr[one_channel_size * c + i * width + j] = *image_ptr++ * scale;
+          } else {
+            RET_CHECK_FAIL() << "unknown output type in NormalizeImage";
+          }
         }
         image_ptr += channels_ignored;
       }
