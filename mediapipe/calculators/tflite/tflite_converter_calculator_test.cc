@@ -320,6 +320,8 @@ TEST_F(TfLiteConverterCalculatorTest, OutputTypeNormAndMean) {
   const TfLiteTensor* tensor = &tensor_vec[0];
   EXPECT_EQ(kTfLiteFloat32, tensor->type);
   const float* tensor_buffer = tensor->data.f;
+//  EXPECT_EQ(1, sizeof(tensor_buffer));
+//  LOG(INFO) << "tensor_buffer " << sizeof(tensor_buffer);
   EXPECT_FLOAT_EQ(-2.0f, tensor_buffer[0]);
   EXPECT_FLOAT_EQ(-1.25f, tensor_buffer[1]);
   EXPECT_FLOAT_EQ(-1.0f, tensor_buffer[2]);
