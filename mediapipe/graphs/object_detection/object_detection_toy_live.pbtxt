@@ -63,11 +63,30 @@ node {
 node {
   calculator: "TfLiteInferenceCalculator"
   input_stream: "TENSORS:image_tensor"
-  output_stream: "TENSORS:tensor"
+  output_stream: "TENSORS:output_tensor"
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
       model_path: "mediapipe/models/toy_detection_mobilenet.tflite"
+      output_tensor_index: 775  #wh 1,16,32,32
+      output_tensor_index: 752  #center_offset 1,2,32,32
+      output_tensor_index: 743  #heatmap 1,1,32,32
+      output_tensor_index: 745  #hmax 1,1,32,32
     }
   }
+}
+
+node {
+   calculator: "TfLiteTensorsTo3dBoxCalculator"
+   input_stream: "TENSORS:output_tensor"
+   output_stream: "TENSORS:tensor"
+#   output_stream: "LANDMARKS:landmarks"
+#   output_stream: "NORM_LANDMARKS:landmarks"
+   options: {
+     [mediapipe.TfLiteTensorsToLandmarksCalculatorOptions.ext] {
+       num_landmarks: 8
+       input_image_width: 256
+       input_image_height: 256
+     }
+   }
 }
 

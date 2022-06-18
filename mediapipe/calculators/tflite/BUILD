@@ -485,6 +485,20 @@ cc_library(
 )
 
 cc_library(
+    name = "tflite_tensors_to_3dbox_calculator",
+    srcs = ["tflite_tensors_to_3dbox_calculator.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":tflite_tensors_to_landmarks_calculator_cc_proto",
+        "//mediapipe/framework:calculator_framework",
+        "//mediapipe/framework/formats:landmark_cc_proto",
+        "//mediapipe/framework/port:ret_check",
+        "@org_tensorflow//tensorflow/lite:framework",
+    ],
+    alwayslink = 1,
+)
+
+cc_library(
     name = "tflite_tensors_to_floats_calculator",
     srcs = ["tflite_tensors_to_floats_calculator.cc"],
     visibility = ["//visibility:public"],

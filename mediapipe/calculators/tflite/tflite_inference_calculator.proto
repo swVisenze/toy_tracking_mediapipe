@@ -134,4 +134,6 @@ message TfLiteInferenceCalculatorOptions {
   // NOTE: use_gpu/use_nnapi are ignored if specified. (Delegate takes
   // precedence over use_* deprecated options.)
   optional Delegate delegate = 5;
+
+  repeated int32 output_tensor_index = 6;
 }

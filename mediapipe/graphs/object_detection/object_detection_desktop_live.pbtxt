@@ -53,17 +53,6 @@ node {
   calculator: "TfLiteConverterCalculator"
   input_stream: "IMAGE:transformed_input_video"
   output_stream: "TENSORS:image_tensor"
-#  options: {
-#     [mediapipe.TfLiteConverterCalculatorOptions.ext] {
-#       output_type: NCHW
-#       norms: 58.395
-#       norms: 57.12
-#       norms: 57.375
-#       means: 123.675
-#       means: 116.28
-#       means: 103.53
-#     }
-#  }
 }
 
 # Runs a TensorFlow Lite model on CPU that takes an image tensor and outputs a

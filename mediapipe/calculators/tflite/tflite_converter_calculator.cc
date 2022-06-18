@@ -335,15 +335,15 @@ absl::Status TfLiteConverterCalculator::ProcessCPU(CalculatorContext* cc) {
     const int tensor_idx = interpreter_->inputs()[0];
     TfLiteTensor* tensor = interpreter_->tensor(tensor_idx);
     if(output_type_ == TfLiteConverterCalculatorOptions::NHWC) {
-      interpreter_->ResizeInputTensor(tensor_idx,
-                                      {height, width, channels_preserved});
+      RET_CHECK_EQ(interpreter_->ResizeInputTensor(tensor_idx,
+                                      {height, width, channels_preserved}), kTfLiteOk);
     } else if(output_type_ == TfLiteConverterCalculatorOptions::NCHW) {
-      interpreter_->ResizeInputTensor(tensor_idx,
-                                      {height, width, channels_preserved});
+      RET_CHECK_EQ(interpreter_->ResizeInputTensor(tensor_idx,
+                                      {channels_preserved, height, width}), kTfLiteOk);
     } else {
       RET_CHECK_FAIL() << "unknown CPU output type ";
     }
-    interpreter_->AllocateTensors();
+    RET_CHECK_EQ(interpreter_->AllocateTensors(), kTfLiteOk);
 
     // Copy image data into tensor.
     if (use_quantized_tensors_) {

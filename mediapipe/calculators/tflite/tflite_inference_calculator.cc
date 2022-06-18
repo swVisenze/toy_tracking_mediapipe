@@ -306,6 +306,7 @@ class TfLiteInferenceCalculator : public CalculatorBase {
 
   bool use_kernel_caching_ = false;
   std::string cached_kernel_filename_;
+  std::vector<int> output_tensor_indexes;
 };
 REGISTER_CALCULATOR(TfLiteInferenceCalculator);
 
@@ -381,6 +382,12 @@ absl::Status TfLiteInferenceCalculator::Open(CalculatorContext* cc) {
 
   const auto& options =
       cc->Options<::mediapipe::TfLiteInferenceCalculatorOptions>();
+
+  if(options.output_tensor_index_size() > 0) {
+    for(int i=0; i<options.output_tensor_index_size(); i++) {
+      output_tensor_indexes.push_back(options.output_tensor_index(i));
+    }
+  }
 
   gpu_inference_ = ShouldUseGpu(cc);
   gpu_input_ = cc->Inputs().HasTag(kTensorsGpuTag);
@@ -627,10 +634,26 @@ absl::Status TfLiteInferenceCalculator::ProcessOutputsCpu(
     std::unique_ptr<std::vector<TfLiteTensor>> output_tensors_cpu) {
   // Output result tensors (CPU).
   const auto& tensor_indexes = interpreter_->outputs();
-  for (int i = 0; i < tensor_indexes.size(); ++i) {
-    TfLiteTensor* tensor = interpreter_->tensor(tensor_indexes[i]);
-    output_tensors_cpu->emplace_back(*tensor);
+  if(output_tensor_indexes.size() > 0) {
+    int output_size = output_tensor_indexes.size();
+    output_tensors_cpu -> resize(output_size);
+    for (int i=0; i<tensor_indexes.size(); ++i) {
+      int index = tensor_indexes[i];
+      for(int tar=0; tar<output_size; ++tar) {
+        if(output_tensor_indexes[tar] == index) {
+          LOG(INFO)<<"put tensor index "<<index<<" at: "<<tar;
+          TfLiteTensor* tensor = interpreter_->tensor(index);
+          output_tensors_cpu->at(tar) = *tensor;
+        }
+      }
+    }
+  } else {
+    for (int i = 0; i < tensor_indexes.size(); ++i) {
+      TfLiteTensor* tensor = interpreter_->tensor(tensor_indexes[i]);
+      output_tensors_cpu->emplace_back(*tensor);
+    }
   }
+
   cc->Outputs()
       .Tag(kTensorsTag)
       .Add(output_tensors_cpu.release(), cc->InputTimestamp());

@@ -100,9 +100,10 @@ namespace mediapipe {
         LOG(INFO) << "tensor vector size: " << tensor_vec.size();
         for (int i = 0; i < tensor_vec.size(); i++) {
             const TfLiteTensor *tensor = &tensor_vec[i];
-            const float *tensor_buffer = tensor->data.f;
-            LOG(INFO) << "tensor_buffer " << i << " size: "
-                      << sizeof(tensor_buffer);
+            LOG(INFO) << "tensor dim: " << tensor->dims->size << " data[0]: "<< tensor->dims->data[0] << " data[1]: "<<tensor->dims->data[1] << " data[2]: "<<tensor->dims->data[2];
+//            const float *tensor_buffer = tensor->data.f;
+//            LOG(INFO) << "tensor_buffer " << i << " size: "
+//                      << sizeof(tensor_buffer);
         }
 
         MP_RETURN_IF_ERROR(graph.CloseInputStream(kInputStream));
