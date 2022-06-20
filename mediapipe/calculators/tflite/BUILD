@@ -81,6 +81,16 @@ mediapipe_proto_library(
 )
 
 mediapipe_proto_library(
+    name = "tflite_tensors_to_toy_detection_calculator_proto",
+    srcs = ["tflite_tensors_to_toy_detection_calculator.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//mediapipe/framework:calculator_options_proto",
+        "//mediapipe/framework:calculator_proto",
+    ],
+)
+
+mediapipe_proto_library(
     name = "tflite_tensors_to_classification_calculator_proto",
     srcs = ["tflite_tensors_to_classification_calculator.proto"],
     visibility = ["//visibility:public"],
@@ -485,13 +495,15 @@ cc_library(
 )
 
 cc_library(
-    name = "tflite_tensors_to_3dbox_calculator",
-    srcs = ["tflite_tensors_to_3dbox_calculator.cc"],
+    name = "tflite_tensors_to_toy_detection_calculator",
+    srcs = ["tflite_tensors_to_toy_detection_calculator.cc"],
     visibility = ["//visibility:public"],
     deps = [
-        ":tflite_tensors_to_landmarks_calculator_cc_proto",
-        "//mediapipe/framework:calculator_framework",
+        ":tflite_tensors_to_toy_detection_calculator_cc_proto",
         "//mediapipe/framework/formats:landmark_cc_proto",
+        "//mediapipe/framework/formats:detection_cc_proto",
+        "//mediapipe/framework/formats:location",
+        "//mediapipe/framework:calculator_framework",
         "//mediapipe/framework/port:ret_check",
         "@org_tensorflow//tensorflow/lite:framework",
     ],

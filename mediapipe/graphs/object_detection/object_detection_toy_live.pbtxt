@@ -76,13 +76,13 @@ node {
 }
 
 node {
-   calculator: "TfLiteTensorsTo3dBoxCalculator"
+   calculator: "TfLiteTensorsToToyDetectionCalculator"
    input_stream: "TENSORS:output_tensor"
    output_stream: "TENSORS:tensor"
 #   output_stream: "LANDMARKS:landmarks"
 #   output_stream: "NORM_LANDMARKS:landmarks"
    options: {
-     [mediapipe.TfLiteTensorsToLandmarksCalculatorOptions.ext] {
+     [mediapipe.TfLiteTensorsToToyDetectionCalculatorOptions.ext] {
        num_landmarks: 8
        input_image_width: 256
        input_image_height: 256

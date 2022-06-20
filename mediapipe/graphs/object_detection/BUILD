@@ -65,7 +65,7 @@ cc_library(
         "//mediapipe/calculators/tflite:tflite_converter_calculator",
         "//mediapipe/calculators/tflite:tflite_inference_calculator",
         "//mediapipe/calculators/tflite:tflite_tensors_to_detections_calculator",
-        "//mediapipe/calculators/tflite:tflite_tensors_to_3dbox_calculator",
+        "//mediapipe/calculators/tflite:tflite_tensors_to_toy_detection_calculator",
         "//mediapipe/calculators/util:annotation_overlay_calculator",
         "//mediapipe/calculators/util:detection_label_id_to_text_calculator",
         "//mediapipe/calculators/util:detections_to_render_data_calculator",
