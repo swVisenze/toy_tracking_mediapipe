@@ -74,7 +74,7 @@ namespace mediapipe {
         LOG(INFO) << "Initialize the calculator graph.";
         mediapipe::CalculatorGraph graph;
         std::vector <Packet> output_packets;
-        tool::AddVectorSink("tensor", &config, &output_packets);
+        tool::AddVectorSink(kOutputStream, &config, &output_packets);
 
         MP_RETURN_IF_ERROR(graph.Initialize(config));
         MP_RETURN_IF_ERROR(graph.StartRun({}));
@@ -88,23 +88,39 @@ namespace mediapipe {
                 input.cols, input.rows, input.step, input.data, [](uint8 *) {});
 
         MP_RETURN_IF_ERROR(graph.AddPacketToInputStream(
-                "input_image",
+                kInputStream,
                 MakePacket<ImageFrame>(std::move(input_image)).At(Timestamp(0))));
 
         // Wait until the calculator done processing.
         MP_RETURN_IF_ERROR(graph.WaitUntilIdle());
 
-        const std::vector <TfLiteTensor> &tensor_vec =
-                output_packets[0].Get < std::vector < TfLiteTensor >> ();
+        // Get and process results.
+        auto& output_frame = output_packets[0].Get<ImageFrame>();
+        cv::Mat output_frame_mat = formats::MatView(&output_frame);
+        cv::cvtColor(output_frame_mat, output_frame_mat, cv::COLOR_RGB2BGR);
 
-        LOG(INFO) << "tensor vector size: " << tensor_vec.size();
-        for (int i = 0; i < tensor_vec.size(); i++) {
-            const TfLiteTensor *tensor = &tensor_vec[i];
-            LOG(INFO) << "tensor dim: " << tensor->dims->size << " data[0]: "<< tensor->dims->data[0] << " data[1]: "<<tensor->dims->data[1] << " data[2]: "<<tensor->dims->data[2];
-//            const float *tensor_buffer = tensor->data.f;
-//            LOG(INFO) << "tensor_buffer " << i << " size: "
-//                      << sizeof(tensor_buffer);
+        std::string output_path = absl::GetFlag(FLAGS_output_image_path);
+        if(output_path.empty()) {
+            cv::imshow(kWindowName, output_frame_mat);
+            // Press any key to exit.
+            const int pressed_key = cv::waitKey(5000);
+            LOG(INFO) << "key pressed: " << pressed_key;
+        } else {
+            std::vector<int> compression_params;
+            compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+            compression_params.push_back(9);
+            cv::imwrite(output_path, output_frame_mat);
         }
+
+
+//        const std::vector <TfLiteTensor> &tensor_vec =
+//                output_packets[0].Get < std::vector < TfLiteTensor >> ();
+//
+//        LOG(INFO) << "tensor vector size: " << tensor_vec.size();
+//        for (int i = 0; i < tensor_vec.size(); i++) {
+//            const TfLiteTensor *tensor = &tensor_vec[i];
+//            LOG(INFO) << "tensor dim: " << tensor->dims->size << " data[0]: "<< tensor->dims->data[0] << " data[1]: "<<tensor->dims->data[1] << " data[2]: "<<tensor->dims->data[2];
+//        }
 
         MP_RETURN_IF_ERROR(graph.CloseInputStream(kInputStream));
         return graph.WaitUntilDone();

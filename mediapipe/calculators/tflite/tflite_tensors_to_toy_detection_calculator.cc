@@ -107,9 +107,11 @@ namespace mediapipe {
         int num_landmarks_ = 0;
         bool flip_vertically_ = false;
         bool flip_horizontally_ = false;
-
-
         ::mediapipe::TfLiteTensorsToToyDetectionCalculatorOptions options_;
+
+        absl::Status ConvertToDetections(const NormalizedLandmarkList normalized_landmark_list,
+                                         const float score,
+                                         std::vector<Detection>* output_detections);
     };
     REGISTER_CALCULATOR(TfLiteTensorsToToyDetectionCalculator);
 
@@ -146,8 +148,12 @@ namespace mediapipe {
             cc->Outputs().Tag("NORM_LANDMARKS").Set<NormalizedLandmarkList>();
         }
 
-        if (cc->Outputs().HasTag("TENSORS"))
-            cc->Outputs().Tag("TENSORS").Set<std::vector<TfLiteTensor>>();
+        if (cc->Outputs().HasTag("DETECTIONS")) {
+            cc->Outputs().Tag("DETECTIONS").Set<std::vector<Detection>>();
+        }
+
+//        if (cc->Outputs().HasTag("TENSORS"))
+//            cc->Outputs().Tag("TENSORS").Set<std::vector<TfLiteTensor>>();
 
 
         return absl::OkStatus();
@@ -240,6 +246,7 @@ namespace mediapipe {
 
         LandmarkList output_landmarks;
         NormalizedLandmarkList output_norm_landmarks;
+        auto output_detections = absl::make_unique<std::vector<Detection>>();
 
         int best_idx = -1;
         int best_jdx = -1;
@@ -273,38 +280,91 @@ namespace mediapipe {
                 } else {
                     landmark->set_y(y);
                 }
-                LOG(INFO) <<"index: " << cidx << " x: " << x  << " y: " << y;
                 // Output normalized landmarks if required.
-                if (cc->Outputs().HasTag("NORM_LANDMARKS")) {
-                    NormalizedLandmark* norm_landmark = output_norm_landmarks.add_landmark();
-                    norm_landmark->set_x(landmark->x() / input_width);
-                    norm_landmark->set_y(landmark->y() / input_height);
-                }
+                NormalizedLandmark* norm_landmark = output_norm_landmarks.add_landmark();
+                norm_landmark->set_x(landmark->x() / input_width);
+                norm_landmark->set_y(landmark->y() / input_height);
+                LOG(INFO) <<"index: " << cidx << " x: " << norm_landmark->x()  << " y: " << norm_landmark->y();
             }
 
-            if (cc->Outputs().HasTag("NORM_LANDMARKS")) {
-                cc->Outputs()
-                        .Tag("NORM_LANDMARKS")
-                        .AddPacket(MakePacket<NormalizedLandmarkList>(output_norm_landmarks)
-                                           .At(cc->InputTimestamp()));
-            }
-            // Output absolute landmarks.
-            if (cc->Outputs().HasTag("LANDMARKS")) {
-                cc->Outputs()
-                        .Tag("LANDMARKS")
-                        .AddPacket(MakePacket<LandmarkList>(output_landmarks)
-                                           .At(cc->InputTimestamp()));
-            }
+            MP_RETURN_IF_ERROR(ConvertToDetections(output_norm_landmarks, best_score,
+                                                   output_detections.get()));
         }
 
-        auto output_tensors = absl::make_unique<std::vector<TfLiteTensor>>();
-        output_tensors->emplace_back(input_tensors[0]);
-        cc->Outputs()
-                .Tag("TENSORS")
-                .Add(output_tensors.release(), cc->InputTimestamp());
+        if (cc->Outputs().HasTag("DETECTIONS")) {
+            LOG(INFO)<<"output detection: "<<output_detections->size();
+            cc->Outputs()
+                .Tag("DETECTIONS")
+                .Add(output_detections.release(), cc->InputTimestamp());
+        }
+
+        if (cc->Outputs().HasTag("NORM_LANDMARKS")) {
+            cc->Outputs()
+                    .Tag("NORM_LANDMARKS")
+                    .AddPacket(MakePacket<NormalizedLandmarkList>(output_norm_landmarks)
+                                       .At(cc->InputTimestamp()));
+        }
+        // Output absolute landmarks.
+        if (cc->Outputs().HasTag("LANDMARKS")) {
+            cc->Outputs()
+                    .Tag("LANDMARKS")
+                    .AddPacket(MakePacket<LandmarkList>(output_landmarks)
+                                       .At(cc->InputTimestamp()));
+        }
+
+//        auto output_tensors = absl::make_unique<std::vector<TfLiteTensor>>();
+//        output_tensors->emplace_back(input_tensors[0]);
+//        cc->Outputs()
+//                .Tag("TENSORS")
+//                .Add(output_tensors.release(), cc->InputTimestamp());
 
         return absl::OkStatus();
 
+    }
+
+    absl::Status TfLiteTensorsToToyDetectionCalculator::ConvertToDetections(const NormalizedLandmarkList normalized_landmark_list,
+                                     const float score,
+                                     std::vector<Detection>* output_detections) {
+        LOG(INFO) << "ConvertToDetections";
+        float min_x=1.0f, min_y=1.0f;
+        float max_x=0.0f, max_y=0.0f;
+        for(int i=0; i<normalized_landmark_list.landmark_size(); i++) {
+            const NormalizedLandmark& norm_landmark = normalized_landmark_list.landmark(i);
+            float x_val = norm_landmark.x();
+            float y_val = norm_landmark.y();
+            if(x_val < min_x) {
+                min_x = x_val;
+            }
+            if(x_val > max_x) {
+                max_x = x_val;
+            }
+            if(y_val < min_y) {
+                min_y = y_val;
+            }
+            if(y_val > max_y) {
+                max_y = y_val;
+            }
+        }
+        LOG(INFO) <<"min_x: "<<min_x << " max_x: "<<max_x<<" min_y: "<<min_y<<" max_y:"<<max_y;
+
+        Detection detection;
+        detection.add_score(score);
+        detection.add_label("toys"); // hard code to toy
+
+        LocationData* location_data = detection.mutable_location_data();
+        location_data->set_format(LocationData::RELATIVE_BOUNDING_BOX);
+
+        LocationData::RelativeBoundingBox* relative_bbox =
+                location_data->mutable_relative_bounding_box();
+
+        relative_bbox->set_xmin(min_x);
+        relative_bbox->set_ymin(min_y);
+        relative_bbox->set_width(max_x - min_x);
+        relative_bbox->set_height(max_y - min_y);
+
+        output_detections->emplace_back(detection);
+
+        return absl::OkStatus();
     }
 
     absl::Status TfLiteTensorsToToyDetectionCalculator::LoadOptions(
