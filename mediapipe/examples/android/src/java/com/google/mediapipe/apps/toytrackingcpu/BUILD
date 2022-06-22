@@ -21,7 +21,7 @@ cc_binary(
     linkshared = 1,
     linkstatic = 1,
     deps = [
-        "//mediapipe/graphs/object_detection:mobile_calculators",
+        "//mediapipe/graphs/tracking:toy_mobile_calculators",
         "//mediapipe/java/com/google/mediapipe/framework/jni:mediapipe_framework_jni",
     ],
 )
@@ -33,49 +33,20 @@ cc_library(
 )
 
 android_binary(
-    name = "objectdetectioncpu",
+    name = "toytrackingcpu",
     srcs = glob(["*.java"]),
     assets = [
-        "//mediapipe/graphs/object_detection:mobile_cpu.binarypb",
-        "//mediapipe/models:ssdlite_object_detection.tflite",
-        "//mediapipe/models:ssdlite_object_detection_labelmap.txt",
-    ],
-    assets_dir = "",
-    manifest = "//mediapipe/examples/android/src/java/com/google/mediapipe/apps/basic:AndroidManifest.xml",
-    manifest_values = {
-        "applicationId": "com.google.mediapipe.apps.objectdetectioncpu",
-        "appName": "Object Detection (CPU)",
-        "mainActivity": "com.google.mediapipe.apps.basic.MainActivity",
-        "cameraFacingFront": "False",
-        "binaryGraphName": "mobile_cpu.binarypb",
-        "inputVideoStreamName": "input_video",
-        "outputVideoStreamName": "output_video",
-        "flipFramesVertically": "True",
-        "converterNumBuffers": "2",
-    },
-    multidex = "native",
-    deps = [
-        ":mediapipe_jni_lib",
-        "//mediapipe/examples/android/src/java/com/google/mediapipe/apps/basic:basic_lib",
-    ],
-)
-
-
-android_binary(
-    name = "toydetectioncpu",
-    srcs = glob(["*.java"]),
-    assets = [
-        "//mediapipe/graphs/object_detection:mobile_toy_cpu.binarypb",
+        "//mediapipe/graphs/tracking:toy_mobile_cpu.binarypb",
         "//mediapipe/models:toy_detection_mobilenet.tflite"
     ],
     assets_dir = "",
     manifest = "//mediapipe/examples/android/src/java/com/google/mediapipe/apps/basic:AndroidManifest.xml",
     manifest_values = {
-        "applicationId": "com.google.mediapipe.apps.toydetectioncpu",
-        "appName": "Toy Detection (CPU)",
+        "applicationId": "com.google.mediapipe.apps.toytrackingcpu",
+        "appName": "toy Tracking (CPU)",
         "mainActivity": "com.google.mediapipe.apps.basic.MainActivity",
         "cameraFacingFront": "False",
-        "binaryGraphName": "mobile_toy_cpu.binarypb",
+        "binaryGraphName": "toy_mobile_cpu.binarypb",
         "inputVideoStreamName": "input_video",
         "outputVideoStreamName": "output_video",
         "flipFramesVertically": "True",

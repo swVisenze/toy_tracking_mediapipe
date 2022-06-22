@@ -641,7 +641,7 @@ absl::Status TfLiteInferenceCalculator::ProcessOutputsCpu(
       int index = tensor_indexes[i];
       for(int tar=0; tar<output_size; ++tar) {
         if(output_tensor_indexes[tar] == index) {
-          LOG(INFO)<<"put tensor index "<<index<<" at: "<<tar;
+//          LOG(INFO)<<"put tensor index "<<index<<" at: "<<tar;
           TfLiteTensor* tensor = interpreter_->tensor(index);
           output_tensors_cpu->at(tar) = *tensor;
         }

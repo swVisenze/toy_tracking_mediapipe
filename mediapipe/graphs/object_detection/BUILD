@@ -25,6 +25,7 @@ cc_library(
         "//mediapipe/calculators/tflite:tflite_converter_calculator",
         "//mediapipe/calculators/tflite:tflite_inference_calculator",
         "//mediapipe/calculators/tflite:tflite_tensors_to_detections_calculator",
+        "//mediapipe/calculators/tflite:tflite_tensors_to_toy_detection_calculator",
         "//mediapipe/calculators/util:annotation_overlay_calculator",
         "//mediapipe/calculators/util:detection_label_id_to_text_calculator",
         "//mediapipe/calculators/util:detection_letterbox_removal_calculator",
@@ -78,6 +79,13 @@ cc_library(
 load(
     "//mediapipe/framework/tool:mediapipe_graph.bzl",
     "mediapipe_binary_graph",
+)
+
+mediapipe_binary_graph(
+    name = "mobile_toy_cpu_binary_graph",
+    graph = "object_detection_toy_mobile_cpu.pbtxt",
+    output_name = "mobile_toy_cpu.binarypb",
+    deps = [":mobile_calculators"],
 )
 
 mediapipe_binary_graph(

@@ -152,10 +152,6 @@ namespace mediapipe {
             cc->Outputs().Tag("DETECTIONS").Set<std::vector<Detection>>();
         }
 
-//        if (cc->Outputs().HasTag("TENSORS"))
-//            cc->Outputs().Tag("TENSORS").Set<std::vector<TfLiteTensor>>();
-
-
         return absl::OkStatus();
     }
 
@@ -252,7 +248,7 @@ namespace mediapipe {
         int best_jdx = -1;
         float best_score = -1.0f;
         getMaxArgFromChannel(heatmap_buffer, 0, heatmap_row_size, heatmap_col_size, &best_idx, &best_jdx, &best_score);
-        LOG(INFO) << "best_idx: "<< best_idx << " best_jdx: "<< best_jdx << " best_score: " << best_score;
+//        LOG(INFO) << "best_idx: "<< best_idx << " best_jdx: "<< best_jdx << " best_score: " << best_score;
 
         int input_height = options_.input_image_height();
         int input_width = options_.input_image_width();
@@ -262,7 +258,7 @@ namespace mediapipe {
             float xs = best_jdx + center_offset_x;
             const float center_offset_y = getValFromBuffer(center_offset_buffer, 1, best_idx, best_jdx, center_offset_row_size, center_offset_col_size);
             float ys = best_idx + center_offset_y;
-            LOG(INFO) << "xs: "<< xs << " ys: "<< ys;
+//            LOG(INFO) << "xs: "<< xs << " ys: "<< ys;
 
             for(int cidx = 0; cidx < num_landmarks_; ++cidx) {
                 float delta_x = getValFromBuffer(hw_buffer, 2*cidx, best_idx, best_jdx, hw_row_size, hw_col_size);
@@ -284,7 +280,7 @@ namespace mediapipe {
                 NormalizedLandmark* norm_landmark = output_norm_landmarks.add_landmark();
                 norm_landmark->set_x(landmark->x() / input_width);
                 norm_landmark->set_y(landmark->y() / input_height);
-                LOG(INFO) <<"index: " << cidx << " x: " << norm_landmark->x()  << " y: " << norm_landmark->y();
+//                LOG(INFO) <<"index: " << cidx << " x: " << norm_landmark->x()  << " y: " << norm_landmark->y();
             }
 
             MP_RETURN_IF_ERROR(ConvertToDetections(output_norm_landmarks, best_score,
@@ -292,7 +288,7 @@ namespace mediapipe {
         }
 
         if (cc->Outputs().HasTag("DETECTIONS")) {
-            LOG(INFO)<<"output detection: "<<output_detections->size();
+//            LOG(INFO)<<"output detection: "<<output_detections->size();
             cc->Outputs()
                 .Tag("DETECTIONS")
                 .Add(output_detections.release(), cc->InputTimestamp());
@@ -325,7 +321,6 @@ namespace mediapipe {
     absl::Status TfLiteTensorsToToyDetectionCalculator::ConvertToDetections(const NormalizedLandmarkList normalized_landmark_list,
                                      const float score,
                                      std::vector<Detection>* output_detections) {
-        LOG(INFO) << "ConvertToDetections";
         float min_x=1.0f, min_y=1.0f;
         float max_x=0.0f, max_y=0.0f;
         for(int i=0; i<normalized_landmark_list.landmark_size(); i++) {
@@ -345,7 +340,7 @@ namespace mediapipe {
                 max_y = y_val;
             }
         }
-        LOG(INFO) <<"min_x: "<<min_x << " max_x: "<<max_x<<" min_y: "<<min_y<<" max_y:"<<max_y;
+//        LOG(INFO) <<"min_x: "<<min_x << " max_x: "<<max_x<<" min_y: "<<min_y<<" max_y:"<<max_y;
 
         Detection detection;
         detection.add_score(score);

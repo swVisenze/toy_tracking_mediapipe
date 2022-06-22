@@ -41,6 +41,26 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "toy_mobile_calculators",
+    deps = [
+        "//mediapipe/calculators/core:packet_resampler_calculator",
+        "//mediapipe/graphs/tracking/subgraphs:toy_detection_cpu",
+        "//mediapipe/graphs/tracking/subgraphs:object_tracking_cpu",
+        "//mediapipe/graphs/tracking/subgraphs:renderer_cpu",
+        "//mediapipe/gpu:gpu_buffer_to_image_frame_calculator",
+        "//mediapipe/gpu:image_frame_to_gpu_buffer_calculator",
+    ],
+)
+
+mediapipe_binary_graph(
+    name = "toy_mobile_cpu_binary_graph",
+    graph = "toy_detection_tracking_mobile_cpu.pbtxt",
+    output_name = "toy_mobile_cpu.binarypb",
+    deps = [":toy_mobile_calculators"],
+)
+
+
 mediapipe_binary_graph(
     name = "mobile_gpu_binary_graph",
     graph = "object_detection_tracking_mobile_gpu.pbtxt",

@@ -107,6 +107,19 @@ mediapipe_simple_subgraph(
 )
 
 mediapipe_simple_subgraph(
+    name = "toy_detection_cpu",
+    graph = "toy_detection_cpu.pbtxt",
+    register_as = "ToyDetectionSubgraphCpu",
+    deps = [
+        "//mediapipe/calculators/image:image_transformation_calculator",
+        "//mediapipe/calculators/tflite:ssd_anchors_calculator",
+        "//mediapipe/calculators/tflite:tflite_converter_calculator",
+        "//mediapipe/calculators/tflite:tflite_inference_calculator",
+        "//mediapipe/calculators/tflite:tflite_tensors_to_toy_detection_calculator",
+    ],
+)
+
+mediapipe_simple_subgraph(
     name = "renderer_gpu",
     graph = "renderer_gpu.pbtxt",
     register_as = "RendererSubgraphGpu",

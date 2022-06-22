@@ -1,0 +1,60 @@
+# Images on GPU coming into and out of the graph.
+input_stream: "input_video"
+output_stream: "output_video"
+
+# Transfers the input image from GPU to CPU memory for the purpose of
+# demonstrating a CPU-based pipeline. Note that the input image on GPU has the
+# origin defined at the bottom-left corner (OpenGL convention). As a result,
+# the transferred image on CPU also shares the same representation.
+node: {
+  calculator: "GpuBufferToImageFrameCalculator"
+  input_stream: "input_video"
+  output_stream: "input_video_cpu"
+}
+
+
+# Resamples the images by specific frame rate. This calculator is used to
+# control the frequecy of subsequent calculators/subgraphs, e.g. less power
+# consumption for expensive process.
+node {
+  calculator: "PacketResamplerCalculator"
+  input_stream: "DATA:input_video_cpu"
+  output_stream: "DATA:throttled_input_video"
+  node_options: {
+    [type.googleapis.com/mediapipe.PacketResamplerCalculatorOptions] {
+      frame_rate: 0.5
+    }
+  }
+}
+
+# Subgraph that detections objects (see toy_detection_cpu.pbtxt).
+node {
+  calculator: "ToyDetectionSubgraphCpu"
+  input_stream: "IMAGE:throttled_input_video"
+  output_stream: "DETECTIONS:output_detections"
+}
+
+# Subgraph that tracks objects (see object_tracking_cpu.pbtxt).
+node {
+  calculator: "ObjectTrackingSubgraphCpu"
+  input_stream: "VIDEO:input_video_cpu"
+  input_stream: "DETECTIONS:output_detections"
+  output_stream: "DETECTIONS:tracked_detections"
+}
+
+# Subgraph that renders annotations and overlays them on top of the input
+# images (see renderer_cpu.pbtxt).
+node {
+  calculator: "RendererSubgraphCpu"
+  input_stream: "IMAGE:input_video_cpu"
+  input_stream: "DETECTIONS:tracked_detections"
+  output_stream: "IMAGE:output_video_cpu"
+}
+
+# Transfers the annotated image from CPU back to GPU memory, to be sent out of
+# the graph.
+node: {
+  calculator: "ImageFrameToGpuBufferCalculator"
+  input_stream: "output_video_cpu"
+  output_stream: "output_video"
+}
