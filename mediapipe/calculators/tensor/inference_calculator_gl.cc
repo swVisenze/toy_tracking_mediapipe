@@ -59,8 +59,6 @@ class InferenceCalculatorGlImpl
 
   // TfLite requires us to keep the model alive as long as the interpreter is.
   Packet<TfLiteModelPtr> model_packet_;
-  std::unique_ptr<tflite::Interpreter> interpreter_;
-  TfLiteDelegatePtr delegate_;
 
 #if MEDIAPIPE_TFLITE_GL_INFERENCE
   mediapipe::GlCalculatorHelper gpu_helper_;
@@ -71,6 +69,9 @@ class InferenceCalculatorGlImpl
   mediapipe::InferenceCalculatorOptions::Delegate::Gpu::InferenceUsage
       tflite_gpu_runner_usage_;
 #endif  // MEDIAPIPE_TFLITE_GL_INFERENCE
+
+  TfLiteDelegatePtr delegate_;
+  std::unique_ptr<tflite::Interpreter> interpreter_;
 
 #if MEDIAPIPE_TFLITE_GPU_SUPPORTED
   std::vector<Tensor::Shape> output_shapes_;
@@ -252,12 +253,17 @@ absl::Status InferenceCalculatorGlImpl::Close(CalculatorContext* cc) {
     MP_RETURN_IF_ERROR(gpu_helper_.RunInGlContext([this]() -> Status {
       gpu_buffers_in_.clear();
       gpu_buffers_out_.clear();
+      // Delegate must outlive the interpreter, hence the order is important.
+      interpreter_ = nullptr;
+      delegate_ = nullptr;
       return absl::OkStatus();
     }));
+  } else {
+    // Delegate must outlive the interpreter, hence the order is important.
+    interpreter_ = nullptr;
+    delegate_ = nullptr;
   }
 
-  interpreter_ = nullptr;
-  delegate_ = nullptr;
   return absl::OkStatus();
 }
 
@@ -288,9 +294,6 @@ absl::Status InferenceCalculatorGlImpl::InitTFLiteGPURunner(
     CalculatorContext* cc) {
   ASSIGN_OR_RETURN(model_packet_, GetModelAsPacket(cc));
   const auto& model = *model_packet_.Get();
-  tflite::ops::builtin::BuiltinOpResolver op_resolver =
-      kSideInCustomOpResolver(cc).GetOr(
-          tflite::ops::builtin::BuiltinOpResolverWithoutDefaultDelegates());
 
   // Create runner
   tflite::gpu::InferenceOptions options;
@@ -329,8 +332,17 @@ absl::Status InferenceCalculatorGlImpl::InitTFLiteGPURunner(
       break;
     }
   }
-  MP_RETURN_IF_ERROR(tflite_gpu_runner_->InitializeWithModel(
-      model, op_resolver, /*allow_quant_ops=*/true));
+  if (kSideInOpResolver(cc).IsConnected()) {
+    const tflite::OpResolver& op_resolver = kSideInOpResolver(cc).Get();
+    MP_RETURN_IF_ERROR(tflite_gpu_runner_->InitializeWithModel(
+        model, op_resolver, /*allow_quant_ops=*/true));
+  } else {
+    tflite::ops::builtin::BuiltinOpResolver op_resolver =
+        kSideInCustomOpResolver(cc).GetOr(
+            tflite::ops::builtin::BuiltinOpResolverWithoutDefaultDelegates());
+    MP_RETURN_IF_ERROR(tflite_gpu_runner_->InitializeWithModel(
+        model, op_resolver, /*allow_quant_ops=*/true));
+  }
 
   // Create and bind OpenGL buffers for outputs.
   // The buffers are created once and their ids are passed to calculator outputs
@@ -352,11 +364,15 @@ absl::Status InferenceCalculatorGlImpl::InitTFLiteGPURunner(
 absl::Status InferenceCalculatorGlImpl::LoadModel(CalculatorContext* cc) {
   ASSIGN_OR_RETURN(model_packet_, GetModelAsPacket(cc));
   const auto& model = *model_packet_.Get();
-  tflite::ops::builtin::BuiltinOpResolver op_resolver =
-      kSideInCustomOpResolver(cc).GetOr(
-          tflite::ops::builtin::BuiltinOpResolverWithoutDefaultDelegates());
-
-  tflite::InterpreterBuilder(model, op_resolver)(&interpreter_);
+  if (kSideInOpResolver(cc).IsConnected()) {
+    const tflite::OpResolver& op_resolver = kSideInOpResolver(cc).Get();
+    tflite::InterpreterBuilder(model, op_resolver)(&interpreter_);
+  } else {
+    tflite::ops::builtin::BuiltinOpResolver op_resolver =
+        kSideInCustomOpResolver(cc).GetOr(
+            tflite::ops::builtin::BuiltinOpResolverWithoutDefaultDelegates());
+    tflite::InterpreterBuilder(model, op_resolver)(&interpreter_);
+  }
   RET_CHECK(interpreter_);
 
 #if defined(__EMSCRIPTEN__)
