@@ -28,10 +28,11 @@ message TfLiteTensorsToToyDetectionCalculatorOptions {
   // The number of output boxes predicted by the detection model.
   optional int32 num_boxes = 1 [default = 1];
   optional int32 num_landmarks =2 [default = 8];
-  optional float min_score_thresh = 3 [default = 0.5];
+  optional int32 down_ratio = 3 [default=8];
+  optional float min_score_thresh = 4 [default = 0.5];
 
-  optional int32 input_image_width = 4;
-  optional int32 input_image_height = 5;
+  optional int32 input_image_width = 5;
+  optional int32 input_image_height = 6;
   // Score threshold for perserving decoded detections.
 
   // Whether the detection coordinates from the input tensors should be flipped
@@ -39,11 +40,11 @@ message TfLiteTensorsToToyDetectionCalculatorOptions {
   // input tensors represent detections defined with a coordinate system where
   // the origin is at the top-left corner, whereas the desired detection
   // representation has a bottom-left origin (e.g., in OpenGL).
-  optional bool flip_vertically = 6 [default = false];
+  optional bool flip_vertically = 7 [default = false];
 
   // Whether the detection coordinates from the input tensors should be flipped
   // horizontally (along the x-direction). This is useful, for example, when the
   // input image is horizontally flipped in ImageTransformationCalculator
   // beforehand.
-  optional bool flip_horizontally = 7 [default = false];
+  optional bool flip_horizontally = 8 [default = false];
 }

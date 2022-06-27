@@ -23,31 +23,8 @@
 namespace mediapipe {
 
     namespace {
-
-        inline float Sigmoid(float value) { return 1.0f / (1.0f + std::exp(-value)); }
-
-        const float CONF_THRESHOLD  = 0.5;
-        const float DOWN_RATIO = 8.0;
-
         inline float getValFromBuffer(const float* array, int channel, int row, int col, int row_size, int col_size) {
             return array[channel * row_size * col_size + row * col_size + col];
-        }
-
-        void getMaxArgFromChannel(const float* array, int channelIdx, int row_size, int col_size,
-                                  int* best_idx, int* best_jdx, float* best_score) {
-//            int best_idx = -1;
-//            int best_jdx = -1;
-//            float best_score = -1;
-            for(int idx=0; idx<row_size; idx++) {
-                for(int jdx=0; jdx<col_size; jdx++) {
-                    const float score = getValFromBuffer(array, channelIdx, idx, jdx, row_size, col_size);
-                    if(score > *best_score && score > CONF_THRESHOLD) {
-                        *best_idx = idx;
-                        *best_jdx = jdx;
-                        *best_score = score;
-                    }
-                }
-            }
         }
     }  // namespace
 
@@ -62,14 +39,35 @@ namespace mediapipe {
         absl::Status LoadOptions(CalculatorContext* cc);
         int num_landmarks_ = 0;
         int num_boxes_ = 0;
+        int down_ratio_ = 0;
+        int input_width_ = 0;
+        int input_height_ = 0;
         float min_score_thresh_ = 0.0f;
         bool flip_vertically_ = false;
         bool flip_horizontally_ = false;
         ::mediapipe::TfLiteTensorsToToyDetectionCalculatorOptions options_;
+        struct IndexObj {
+            int idx;
+            int jdx;
+            float score;
+        };
+
+        struct CompareIndexObj {
+            bool operator() (IndexObj const& left, IndexObj const& right) {
+                return left.score < right.score;
+            }
+        };
+
 
         absl::Status ConvertToDetections(const NormalizedLandmarkList normalized_landmark_list,
                                          const float score,
                                          std::vector<Detection>* output_detections);
+
+        absl::Status getLandmarksFromPeaks(const float* center_offset_buffer, const float* hw_buffer, int idx, int jdx, int row_size, int col_size,
+                                           LandmarkList* landmark_list_output, NormalizedLandmarkList* normalized_landmark_list_output);
+
+        absl::Status getTopKPeaksFromChannel(const float* hmax_buffer, const float* heatmap_buffer, int channelIdx, int row_size, int col_size,
+                                             std::priority_queue<IndexObj, std::vector<IndexObj>, CompareIndexObj>* priority_queue_output);
     };
     REGISTER_CALCULATOR(TfLiteTensorsToToyDetectionCalculator);
 
@@ -98,13 +96,13 @@ namespace mediapipe {
             cc->InputSidePackets().Tag("FLIP_VERTICALLY").Set<bool>();
         }
 
-        if (cc->Outputs().HasTag("LANDMARKS")) {
-            cc->Outputs().Tag("LANDMARKS").Set<LandmarkList>();
-        }
-
-        if (cc->Outputs().HasTag("NORM_LANDMARKS")) {
-            cc->Outputs().Tag("NORM_LANDMARKS").Set<NormalizedLandmarkList>();
-        }
+//        if (cc->Outputs().HasTag("LANDMARKS")) {
+//            cc->Outputs().Tag("LANDMARKS").Set<LandmarkList>();
+//        }
+//
+//        if (cc->Outputs().HasTag("NORM_LANDMARKS")) {
+//            cc->Outputs().Tag("NORM_LANDMARKS").Set<NormalizedLandmarkList>();
+//        }
 
         if (cc->Outputs().HasTag("DETECTIONS")) {
             cc->Outputs().Tag("DETECTIONS").Set<std::vector<Detection>>();
@@ -117,21 +115,6 @@ namespace mediapipe {
         cc->SetOffset(TimestampDiff(0));
 
         MP_RETURN_IF_ERROR(LoadOptions(cc));
-
-        if (cc->Outputs().HasTag("NORM_LANDMARKS")) {
-            RET_CHECK(options_.has_input_image_height() &&
-                      options_.has_input_image_width())
-                    << "Must provide input width/height for getting normalized landmarks.";
-        }
-        if (cc->Outputs().HasTag("LANDMARKS") &&
-            (options_.flip_vertically() || options_.flip_horizontally() ||
-             cc->InputSidePackets().HasTag("FLIP_HORIZONTALLY") ||
-             cc->InputSidePackets().HasTag("FLIP_VERTICALLY"))) {
-            RET_CHECK(options_.has_input_image_height() &&
-                      options_.has_input_image_width())
-                    << "Must provide input width/height for using flip_vertically option "
-                       "when outputing landmarks in absolute coordinates.";
-        }
 
         flip_horizontally_ =
                 cc->InputSidePackets().HasTag("FLIP_HORIZONTALLY")
@@ -166,16 +149,18 @@ namespace mediapipe {
                 cc->Inputs().Tag("TENSORS").Get<std::vector<TfLiteTensor>>();
 
         RET_CHECK(input_tensors.size()==4) <<" input tensor size must be 4";
+        int row_size = input_height_ / down_ratio_;
+        int col_size = input_width_ / down_ratio_;
 
         const TfLiteTensor* hw_tensor = &input_tensors[0];
         CHECK_EQ(hw_tensor->dims->size, 4);
         CHECK_EQ(hw_tensor->dims->data[0], 1);
         int hw_channel_size = hw_tensor->dims->data[1];
-        CHECK_EQ(hw_channel_size, 16);
+        CHECK_EQ(hw_channel_size, 2*num_landmarks_);  // 2*8 = 16
         int hw_row_size = hw_tensor->dims->data[2];
-        CHECK_EQ(hw_row_size, 32);
+        CHECK_EQ(hw_row_size, row_size);
         int hw_col_size = hw_tensor->dims->data[3];
-        CHECK_EQ(hw_col_size, 32);
+        CHECK_EQ(hw_col_size, col_size);
         const float* hw_buffer = hw_tensor->data.f;
 
         const TfLiteTensor* center_offset_tensor = &input_tensors[1];
@@ -183,9 +168,9 @@ namespace mediapipe {
         CHECK_EQ(center_offset_tensor->dims->data[0], 1);
         CHECK_EQ(center_offset_tensor->dims->data[1], 2);
         int center_offset_row_size = center_offset_tensor->dims->data[2];
-        CHECK_EQ(center_offset_row_size, 32);
+        CHECK_EQ(center_offset_row_size, row_size);
         int center_offset_col_size = center_offset_tensor->dims->data[3];
-        CHECK_EQ(center_offset_col_size, 32);
+        CHECK_EQ(center_offset_col_size, col_size);
         const float* center_offset_buffer = center_offset_tensor->data.f;
 
         const TfLiteTensor* heatmap_tensor = &input_tensors[2];
@@ -193,60 +178,45 @@ namespace mediapipe {
         CHECK_EQ(heatmap_tensor->dims->data[0], 1);
         CHECK_EQ(heatmap_tensor->dims->data[1], 1);
         int heatmap_row_size = heatmap_tensor->dims->data[2];
-        CHECK_EQ(heatmap_row_size, 32);
+        CHECK_EQ(heatmap_row_size, row_size);
         int heatmap_col_size = heatmap_tensor->dims->data[3];
-        CHECK_EQ(heatmap_col_size, 32);
+        CHECK_EQ(heatmap_col_size, col_size);
         const float* heatmap_buffer = heatmap_tensor->data.f;
 
-        LandmarkList output_landmarks;
-        NormalizedLandmarkList output_norm_landmarks;
+        const TfLiteTensor* hmax_tensor = &input_tensors[3];
+        CHECK_EQ(hmax_tensor->dims->size, 4);
+        CHECK_EQ(hmax_tensor->dims->data[0], 1);
+        CHECK_EQ(hmax_tensor->dims->data[1], 1);
+        int hmax_row_size = hmax_tensor->dims->data[2];
+        CHECK_EQ(hmax_row_size, row_size);
+        int hmax_col_size = hmax_tensor->dims->data[3];
+        CHECK_EQ(hmax_col_size, col_size);
+        const float* hmax_buffer = hmax_tensor->data.f;
+
+        std::priority_queue<IndexObj, std::vector<IndexObj>, CompareIndexObj> priority_queue_;
+        getTopKPeaksFromChannel(hmax_buffer, heatmap_buffer, 0, row_size, col_size, &priority_queue_);
+
+
         auto output_detections = absl::make_unique<std::vector<Detection>>();
 
-        int best_idx = -1;
-        int best_jdx = -1;
-        float best_score = -1.0f;
-        
+        for (int i=0; i<num_boxes_; i++) {
+            if(priority_queue_.size() > 0) {
+                IndexObj obj = priority_queue_.top();
+//                LOG(INFO) << "score: " << obj.score <<" idx: " << obj.idx <<" jdx: "<<obj.jdx;
 
-        getMaxArgFromChannel(heatmap_buffer, 0, heatmap_row_size, heatmap_col_size, &best_idx, &best_jdx, &best_score);
-//        LOG(INFO) << "best_idx: "<< best_idx << " best_jdx: "<< best_jdx << " best_score: " << best_score;
+                // find 8 landmark points
+                LandmarkList output_landmarks;
+                NormalizedLandmarkList output_norm_landmarks;
+                MP_RETURN_IF_ERROR(getLandmarksFromPeaks(center_offset_buffer, hw_buffer, obj.idx, obj.jdx, row_size, col_size,
+                                      &output_landmarks, &output_norm_landmarks));
 
-        int input_height = options_.input_image_height();
-        int input_width = options_.input_image_width();
-
-
-        if(best_idx != -1 && best_jdx != -1) {
-            const float center_offset_x = getValFromBuffer(center_offset_buffer, 0, best_idx, best_jdx, center_offset_row_size, center_offset_col_size);
-            float xs = best_jdx + center_offset_x;
-            const float center_offset_y = getValFromBuffer(center_offset_buffer, 1, best_idx, best_jdx, center_offset_row_size, center_offset_col_size);
-            float ys = best_idx + center_offset_y;
-//            LOG(INFO) << "xs: "<< xs << " ys: "<< ys;
-
-            for(int cidx = 0; cidx < num_landmarks_; ++cidx) {
-                float delta_x = getValFromBuffer(hw_buffer, 2*cidx, best_idx, best_jdx, hw_row_size, hw_col_size);
-                float delta_y = getValFromBuffer(hw_buffer, 2*cidx+1, best_idx, best_jdx, hw_row_size, hw_col_size);
-                float x = (xs + delta_x) * DOWN_RATIO;
-                float y = (ys + delta_y) * DOWN_RATIO;
-                Landmark* landmark = output_landmarks.add_landmark();
-                if (flip_horizontally_) {
-                    landmark->set_x(input_width - x);
-                } else {
-                    landmark->set_x(x);
-                }
-                if (flip_vertically_) {
-                    landmark->set_y(input_height - y);
-                } else {
-                    landmark->set_y(y);
-                }
-                // Output normalized landmarks if required.
-                NormalizedLandmark* norm_landmark = output_norm_landmarks.add_landmark();
-                norm_landmark->set_x(landmark->x() / input_width);
-                norm_landmark->set_y(landmark->y() / input_height);
-//                LOG(INFO) <<"index: " << cidx << " x: " << norm_landmark->x()  << " y: " << norm_landmark->y();
+                // add to detection output
+                MP_RETURN_IF_ERROR(ConvertToDetections(output_norm_landmarks, obj.score,
+                                                       output_detections.get()));
+                priority_queue_.pop();
             }
-
-            MP_RETURN_IF_ERROR(ConvertToDetections(output_norm_landmarks, best_score,
-                                                   output_detections.get()));
         }
+
 
         if (cc->Outputs().HasTag("DETECTIONS")) {
 //            LOG(INFO)<<"output detection: "<<output_detections->size();
@@ -255,29 +225,72 @@ namespace mediapipe {
                 .Add(output_detections.release(), cc->InputTimestamp());
         }
 
-        if (cc->Outputs().HasTag("NORM_LANDMARKS")) {
-            cc->Outputs()
-                    .Tag("NORM_LANDMARKS")
-                    .AddPacket(MakePacket<NormalizedLandmarkList>(output_norm_landmarks)
-                                       .At(cc->InputTimestamp()));
-        }
-        // Output absolute landmarks.
-        if (cc->Outputs().HasTag("LANDMARKS")) {
-            cc->Outputs()
-                    .Tag("LANDMARKS")
-                    .AddPacket(MakePacket<LandmarkList>(output_landmarks)
-                                       .At(cc->InputTimestamp()));
-        }
-
-//        auto output_tensors = absl::make_unique<std::vector<TfLiteTensor>>();
-//        output_tensors->emplace_back(input_tensors[0]);
-//        cc->Outputs()
-//                .Tag("TENSORS")
-//                .Add(output_tensors.release(), cc->InputTimestamp());
+//        if (cc->Outputs().HasTag("NORM_LANDMARKS")) {
+//            cc->Outputs()
+//                    .Tag("NORM_LANDMARKS")
+//                    .AddPacket(MakePacket<NormalizedLandmarkList>(output_norm_landmarks)
+//                                       .At(cc->InputTimestamp()));
+//        }
+//        // Output absolute landmarks.
+//        if (cc->Outputs().HasTag("LANDMARKS")) {
+//            cc->Outputs()
+//                    .Tag("LANDMARKS")
+//                    .AddPacket(MakePacket<LandmarkList>(output_landmarks)
+//                                       .At(cc->InputTimestamp()));
+//        }
 
         return absl::OkStatus();
-
     }
+
+    absl::Status TfLiteTensorsToToyDetectionCalculator::getLandmarksFromPeaks(const float* center_offset_buffer, const float* hw_buffer, int idx, int jdx, int row_size, int col_size,
+                          LandmarkList* landmark_list_output, NormalizedLandmarkList* normalized_landmark_list_output) {
+        const float center_offset_x = getValFromBuffer(center_offset_buffer, 0, idx, jdx, row_size, col_size);
+        float xs = jdx + center_offset_x;
+        const float center_offset_y = getValFromBuffer(center_offset_buffer, 1, idx, jdx, row_size, col_size);
+        float ys = idx + center_offset_y;
+//            LOG(INFO) << "xs: "<< xs << " ys: "<< ys;
+
+        for(int cidx = 0; cidx < num_landmarks_; ++cidx) {
+            float delta_x = getValFromBuffer(hw_buffer, 2*cidx, idx, jdx, row_size, col_size);
+            float delta_y = getValFromBuffer(hw_buffer, 2*cidx+1, idx, jdx, row_size, col_size);
+            float x = (xs + delta_x) * down_ratio_;
+            float y = (ys + delta_y) * down_ratio_;
+            Landmark* landmark = landmark_list_output->add_landmark();
+            if (flip_horizontally_) {
+                landmark->set_x(input_width_ - x);
+            } else {
+                landmark->set_x(x);
+            }
+            if (flip_vertically_) {
+                landmark->set_y(input_height_ - y);
+            } else {
+                landmark->set_y(y);
+            }
+            NormalizedLandmark* norm_landmark = normalized_landmark_list_output->add_landmark();
+            norm_landmark->set_x(landmark->x() / input_width_);
+            norm_landmark->set_y(landmark->y() / input_height_);
+//                LOG(INFO) <<"index: " << cidx << " x: " << norm_landmark->x()  << " y: " << norm_landmark->y();
+        }
+
+        return absl::OkStatus();
+    }
+
+    absl::Status TfLiteTensorsToToyDetectionCalculator::getTopKPeaksFromChannel(const float* hmax_buffer, const float* heatmap_buffer, int channelIdx, int row_size, int col_size,
+                                                                                std::priority_queue<IndexObj, std::vector<IndexObj>, CompareIndexObj>* priority_queue_output) {
+        for(int idx=0; idx<row_size; idx++) {
+            for(int jdx=0; jdx<col_size; jdx++) {
+                const float hmax_score = getValFromBuffer(hmax_buffer, channelIdx, idx, jdx, row_size, col_size);
+                const float heatmap_score = getValFromBuffer(heatmap_buffer, channelIdx, idx, jdx, row_size, col_size);
+                if(hmax_score == heatmap_score && heatmap_score > min_score_thresh_) {
+//                    LOG(INFO) <<"add heatmap_score score: " << heatmap_score << " idx: "<< idx << " jdx: " << jdx;
+//                    LOG(INFO) <<"add hmax_score score: " << hmax_score << " idx: "<< idx << " jdx: " << jdx;
+                    priority_queue_output->push({idx, jdx, heatmap_score});
+                }
+            }
+        }
+        return absl::OkStatus();
+    }
+
 
     absl::Status TfLiteTensorsToToyDetectionCalculator::ConvertToDetections(const NormalizedLandmarkList normalized_landmark_list,
                                      const float score,
@@ -330,9 +343,15 @@ namespace mediapipe {
                 cc->Options<::mediapipe::TfLiteTensorsToToyDetectionCalculatorOptions>();
         num_landmarks_ = options_.num_landmarks();
         num_boxes_ = options_.num_boxes();
-        LOG(INFO) <<"num_boxes_: " << num_boxes_;
         min_score_thresh_ = options_.min_score_thresh();
-        LOG(INFO) <<"min_score_thresh_: " << min_score_thresh_;
+        down_ratio_ = options_.down_ratio();
+
+        RET_CHECK(options_.has_input_image_height() &&
+                  options_.has_input_image_width())
+                << "Must provide input width/height";
+        input_height_ = options_.input_image_height();
+        input_width_ = options_.input_image_width();
+
         return absl::OkStatus();
     }
 }  // namespace mediapipe
