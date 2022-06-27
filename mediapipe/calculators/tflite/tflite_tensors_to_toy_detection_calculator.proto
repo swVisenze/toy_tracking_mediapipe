@@ -25,17 +25,16 @@ message TfLiteTensorsToToyDetectionCalculatorOptions {
     optional TfLiteTensorsToToyDetectionCalculatorOptions ext = 246514828;
   }
 
-  // The number of output classes predicted by the detection model.
-  optional int32 num_classes = 1;  // required
   // The number of output boxes predicted by the detection model.
-  optional int32 num_boxes = 2;  // required
+  optional int32 num_boxes = 1 [default = 1];
+  optional int32 num_landmarks =2 [default = 8];
+  optional int32 down_ratio = 3 [default=8];
+  optional float min_score_thresh = 4 [default = 0.5];
 
-  optional int32 num_landmarks =3;
-  optional int32 input_image_width = 4;
-  optional int32 input_image_height = 5;
-
+  optional int32 input_image_width = 5;
+  optional int32 input_image_height = 6;
   // Score threshold for perserving decoded detections.
-  optional float min_score_thresh = 6;
+
   // Whether the detection coordinates from the input tensors should be flipped
   // vertically (along the y-direction). This is useful, for example, when the
   // input tensors represent detections defined with a coordinate system where

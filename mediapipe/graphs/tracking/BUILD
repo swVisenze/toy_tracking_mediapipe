@@ -42,6 +42,18 @@ cc_library(
 )
 
 cc_library(
+    name = "toy_desktop_calculators",
+    deps = [
+        "//mediapipe/calculators/core:packet_resampler_calculator",
+        "//mediapipe/graphs/tracking/subgraphs:toy_detection_cpu",
+        "//mediapipe/graphs/tracking/subgraphs:object_tracking_cpu",
+        "//mediapipe/graphs/tracking/subgraphs:renderer_cpu",
+    ],
+)
+
+
+
+cc_library(
     name = "toy_mobile_calculators",
     deps = [
         "//mediapipe/calculators/core:packet_resampler_calculator",
