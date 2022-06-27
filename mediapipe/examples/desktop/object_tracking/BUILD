@@ -23,3 +23,12 @@ cc_binary(
         "//mediapipe/graphs/tracking:desktop_calculators",
     ],
 )
+
+
+cc_binary(
+    name = "toy_tracking_cpu",
+    deps = [
+        "//mediapipe/examples/desktop:demo_run_graph_main",
+        "//mediapipe/graphs/tracking:toy_desktop_calculators",
+    ],
+)

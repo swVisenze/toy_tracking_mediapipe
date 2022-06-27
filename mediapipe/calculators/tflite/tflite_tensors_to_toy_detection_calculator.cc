@@ -51,50 +51,6 @@ namespace mediapipe {
         }
     }  // namespace
 
-// A calculator for converting TFLite tensors from regression models into
-// landmarks. Note that if the landmarks in the tensor has more than 5
-// dimensions, only the first 5 dimensions will be converted to
-// [x,y,z, visibility, presence]. The latter two fields may also stay unset if
-// such attributes are not supported in the model.
-//
-// Input:
-//  TENSORS - Vector of TfLiteTensor of type kTfLiteFloat32 model output
-//
-//  FLIP_HORIZONTALLY (optional): Whether to flip landmarks horizontally or
-//  not. Overrides corresponding side packet and/or field in the calculator
-//  options.
-//
-//  FLIP_VERTICALLY (optional): Whether to flip landmarks vertically or not.
-//  Overrides corresponding side packet and/or field in the calculator options.
-//
-// Input side packet:
-//   FLIP_HORIZONTALLY (optional): Whether to flip landmarks horizontally or
-//   not. Overrides the corresponding field in the calculator options.
-//
-//   FLIP_VERTICALLY (optional): Whether to flip landmarks vertically or not.
-//   Overrides the corresponding field in the calculator options.
-//
-// Output:
-//  LANDMARKS(optional) - Result MediaPipe landmarks.
-//
-// Notes:
-//   To output normalized landmarks, user must provide the original input image
-//   size to the model using calculator option input_image_width and
-//   input_image_height.
-// Usage example:
-// node {
-//   calculator: "TfLiteTensorsToLandmarksCalculator"
-//   input_stream: "TENSORS:landmark_tensors"
-//   output_stream: "LANDMARKS:landmarks"
-//   output_stream: "NORM_LANDMARKS:landmarks"
-//   options: {
-//     [mediapipe.TfLiteTensorsToLandmarksCalculatorOptions.ext] {
-//       num_landmarks: 8
-//       input_image_width: 256
-//       input_image_height: 256
-//     }
-//   }
-// }
     class TfLiteTensorsToToyDetectionCalculator : public CalculatorBase {
     public:
         static absl::Status GetContract(CalculatorContract* cc);
@@ -105,6 +61,8 @@ namespace mediapipe {
     private:
         absl::Status LoadOptions(CalculatorContext* cc);
         int num_landmarks_ = 0;
+        int num_boxes_ = 0;
+        float min_score_thresh_ = 0.0f;
         bool flip_vertically_ = false;
         bool flip_horizontally_ = false;
         ::mediapipe::TfLiteTensorsToToyDetectionCalculatorOptions options_;
@@ -247,11 +205,14 @@ namespace mediapipe {
         int best_idx = -1;
         int best_jdx = -1;
         float best_score = -1.0f;
+        
+
         getMaxArgFromChannel(heatmap_buffer, 0, heatmap_row_size, heatmap_col_size, &best_idx, &best_jdx, &best_score);
 //        LOG(INFO) << "best_idx: "<< best_idx << " best_jdx: "<< best_jdx << " best_score: " << best_score;
 
         int input_height = options_.input_image_height();
         int input_width = options_.input_image_width();
+
 
         if(best_idx != -1 && best_jdx != -1) {
             const float center_offset_x = getValFromBuffer(center_offset_buffer, 0, best_idx, best_jdx, center_offset_row_size, center_offset_col_size);
@@ -368,7 +329,10 @@ namespace mediapipe {
         options_ =
                 cc->Options<::mediapipe::TfLiteTensorsToToyDetectionCalculatorOptions>();
         num_landmarks_ = options_.num_landmarks();
-
+        num_boxes_ = options_.num_boxes();
+        LOG(INFO) <<"num_boxes_: " << num_boxes_;
+        min_score_thresh_ = options_.min_score_thresh();
+        LOG(INFO) <<"min_score_thresh_: " << min_score_thresh_;
         return absl::OkStatus();
     }
 }  // namespace mediapipe
