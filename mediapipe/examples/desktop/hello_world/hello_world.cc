@@ -18,6 +18,7 @@
 #include "mediapipe/framework/port/logging.h"
 #include "mediapipe/framework/port/parse_text_proto.h"
 #include "mediapipe/framework/port/status.h"
+#include <iostream>
 
 namespace mediapipe {
 
@@ -27,12 +28,6 @@ absl::Status PrintHelloWorld() {
       ParseTextProtoOrDie<CalculatorGraphConfig>(R"pb(
         input_stream: "in"
         output_stream: "out"
-        profiler_config {
-          trace_enabled: true
-          enable_profiler: true
-          trace_log_count: 5
-          trace_log_path: "/Users/siwei/Desktop/proj/ai/mediapipe_trace"
-        }
         node {
           calculator: "PassThroughCalculator"
           input_stream: "in"
@@ -69,5 +64,6 @@ absl::Status PrintHelloWorld() {
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   CHECK(mediapipe::PrintHelloWorld().ok());
+  std::cout << "Hello world from Khoa 2" << std::endl;
   return 0;
 }
