@@ -18,7 +18,6 @@
 #include "mediapipe/framework/port/logging.h"
 #include "mediapipe/framework/port/parse_text_proto.h"
 #include "mediapipe/framework/port/status.h"
-#include <iostream>
 
 namespace mediapipe {
 
@@ -64,6 +63,5 @@ absl::Status PrintHelloWorld() {
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   CHECK(mediapipe::PrintHelloWorld().ok());
-  std::cout << "Hello world from Khoa 2" << std::endl;
   return 0;
 }
