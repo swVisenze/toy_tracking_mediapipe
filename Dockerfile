@@ -50,13 +50,14 @@ RUN pip3 install --upgrade setuptools
 RUN pip3 install wheel
 RUN pip3 install future
 RUN pip3 install six==1.14.0
+RUN pip3 install protobuf==3.6.1
 RUN pip3 install tensorflow==1.14.0
 RUN pip3 install tf_slim
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # Install bazel
-ARG BAZEL_VERSION=5.0.0
+ARG BAZEL_VERSION=5.2.0
 RUN mkdir /bazel && \
     wget --no-check-certificate -O /bazel/installer.sh "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/b\
 azel-${BAZEL_VERSION}-installer-linux-x86_64.sh" && \
@@ -65,7 +66,7 @@ azel-${BAZEL_VERSION}-installer-linux-x86_64.sh" && \
     /bazel/installer.sh  && \
     rm -f /bazel/installer.sh
 
-COPY . /mediapipe/
+# COPY . /mediapipe/
 
 # If we want the docker image to contain the pre-built object_detection_offline_demo binary, do the following
 # RUN bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/demo:object_detection_tensorflow_demo
