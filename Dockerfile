@@ -66,6 +66,13 @@ azel-${BAZEL_VERSION}-installer-linux-x86_64.sh" && \
     /bazel/installer.sh  && \
     rm -f /bazel/installer.sh
 
+ARG USER_ID
+ARG GROUP_ID
+
+# RUN addgroup --gid $GROUP_ID user
+RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
+USER user
+
 # COPY . /mediapipe/
 
 # If we want the docker image to contain the pre-built object_detection_offline_demo binary, do the following
