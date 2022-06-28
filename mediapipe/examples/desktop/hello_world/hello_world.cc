@@ -27,12 +27,6 @@ absl::Status PrintHelloWorld() {
       ParseTextProtoOrDie<CalculatorGraphConfig>(R"pb(
         input_stream: "in"
         output_stream: "out"
-        profiler_config {
-          trace_enabled: true
-          enable_profiler: true
-          trace_log_count: 5
-          trace_log_path: "/Users/siwei/Desktop/proj/ai/mediapipe_trace"
-        }
         node {
           calculator: "PassThroughCalculator"
           input_stream: "in"
