@@ -62,6 +62,9 @@ namespace mediapipe {
         absl::Status ConvertToDetections(const NormalizedLandmarkList normalized_landmark_list,
                                          const float score,
                                          std::vector<Detection>* output_detections);
+        absl::Status GetDetectionFromModel(const float* hw2d_buffer, 
+                                           int idx, int jdx, int row_size, int col_size, float down_ratio_, float score, 
+                                           std::vector<Detection>* output_detections); 
 
         absl::Status getLandmarksFromPeaks(const float* center_offset_buffer, const float* hw_buffer, int idx, int jdx, int row_size, int col_size,
                                            LandmarkList* landmark_list_output, NormalizedLandmarkList* normalized_landmark_list_output);
@@ -148,71 +151,70 @@ namespace mediapipe {
         const auto& input_tensors =
                 cc->Inputs().Tag("TENSORS").Get<std::vector<TfLiteTensor>>();
 
-        RET_CHECK(input_tensors.size()==4) <<" input tensor size must be 4";
+        RET_CHECK(input_tensors.size()==7) <<" input tensor size must be 7";
         int row_size = input_height_ / down_ratio_;
         int col_size = input_width_ / down_ratio_;
 
-        const TfLiteTensor* hw_tensor = &input_tensors[0];
-        CHECK_EQ(hw_tensor->dims->size, 4);
-        CHECK_EQ(hw_tensor->dims->data[0], 1);
-        int hw_channel_size = hw_tensor->dims->data[1];
-        CHECK_EQ(hw_channel_size, 2*num_landmarks_);  // 2*8 = 16
-        int hw_row_size = hw_tensor->dims->data[2];
-        CHECK_EQ(hw_row_size, row_size);
-        int hw_col_size = hw_tensor->dims->data[3];
-        CHECK_EQ(hw_col_size, col_size);
-        const float* hw_buffer = hw_tensor->data.f;
+        LOG(INFO) << "Check wh2d";
+        const TfLiteTensor* wh2d_tensor = &input_tensors[4];
+        CHECK_EQ(wh2d_tensor->dims->size, 4);
+        CHECK_EQ(wh2d_tensor->dims->data[0], 1);
+        int wh2d_channel_size = wh2d_tensor->dims->data[1];
+        CHECK_EQ(wh2d_channel_size, 4);  // 2*2 = 4
+        int wh2d_row_size = wh2d_tensor->dims->data[2];
+        CHECK_EQ(wh2d_row_size, row_size);
+        int wh2d_col_size = wh2d_tensor->dims->data[3];
+        CHECK_EQ(wh2d_col_size, col_size);
+        const float* wh2d_buffer = wh2d_tensor->data.f;
 
-        const TfLiteTensor* center_offset_tensor = &input_tensors[1];
-        CHECK_EQ(center_offset_tensor->dims->size, 4);
-        CHECK_EQ(center_offset_tensor->dims->data[0], 1);
-        CHECK_EQ(center_offset_tensor->dims->data[1], 2);
-        int center_offset_row_size = center_offset_tensor->dims->data[2];
-        CHECK_EQ(center_offset_row_size, row_size);
-        int center_offset_col_size = center_offset_tensor->dims->data[3];
-        CHECK_EQ(center_offset_col_size, col_size);
-        const float* center_offset_buffer = center_offset_tensor->data.f;
-
-        const TfLiteTensor* heatmap_tensor = &input_tensors[2];
-        CHECK_EQ(heatmap_tensor->dims->size, 4);
-        CHECK_EQ(heatmap_tensor->dims->data[0], 1);
-        CHECK_EQ(heatmap_tensor->dims->data[1], 1);
-        int heatmap_row_size = heatmap_tensor->dims->data[2];
+        LOG(INFO) << "Check heatmap2d";
+        const TfLiteTensor* heatmap2d_tensor = &input_tensors[5];
+        CHECK_EQ(heatmap2d_tensor->dims->size, 4);
+        CHECK_EQ(heatmap2d_tensor->dims->data[0], 1);
+        CHECK_EQ(heatmap2d_tensor->dims->data[1], 1);
+        int heatmap_row_size = heatmap2d_tensor->dims->data[2];
         CHECK_EQ(heatmap_row_size, row_size);
-        int heatmap_col_size = heatmap_tensor->dims->data[3];
+        int heatmap_col_size = heatmap2d_tensor->dims->data[3];
         CHECK_EQ(heatmap_col_size, col_size);
-        const float* heatmap_buffer = heatmap_tensor->data.f;
+        const float* heatmap_buffer = heatmap2d_tensor->data.f;
 
-        const TfLiteTensor* hmax_tensor = &input_tensors[3];
-        CHECK_EQ(hmax_tensor->dims->size, 4);
-        CHECK_EQ(hmax_tensor->dims->data[0], 1);
-        CHECK_EQ(hmax_tensor->dims->data[1], 1);
-        int hmax_row_size = hmax_tensor->dims->data[2];
+        LOG(INFO) << "Check heatmap2d max";
+        const TfLiteTensor* h2dmax_tensor = &input_tensors[6];
+        CHECK_EQ(h2dmax_tensor->dims->size, 4);
+        CHECK_EQ(h2dmax_tensor->dims->data[0], 1);
+        CHECK_EQ(h2dmax_tensor->dims->data[1], 1);
+        int hmax_row_size = h2dmax_tensor->dims->data[2];
         CHECK_EQ(hmax_row_size, row_size);
-        int hmax_col_size = hmax_tensor->dims->data[3];
+        int hmax_col_size = h2dmax_tensor->dims->data[3];
         CHECK_EQ(hmax_col_size, col_size);
-        const float* hmax_buffer = hmax_tensor->data.f;
+        const float* hmax_buffer = h2dmax_tensor->data.f;
 
         std::priority_queue<IndexObj, std::vector<IndexObj>, CompareIndexObj> priority_queue_;
+        LOG(INFO) << "Tensor chec is done. Get topK peeks...";
         getTopKPeaksFromChannel(hmax_buffer, heatmap_buffer, 0, row_size, col_size, &priority_queue_);
 
 
         auto output_detections = absl::make_unique<std::vector<Detection>>();
-
-        for (int i=0; i<num_boxes_; i++) {
+        int num_boxes = num_boxes_ < priority_queue_.size() ? num_boxes_: priority_queue_.size();
+        for (int i=0; i<num_boxes; i++) {
             if(priority_queue_.size() > 0) {
                 IndexObj obj = priority_queue_.top();
-//                LOG(INFO) << "score: " << obj.score <<" idx: " << obj.idx <<" jdx: "<<obj.jdx;
+                LOG(INFO) << "score: " << obj.score <<" idx: " << obj.idx <<" jdx: "<<obj.jdx;
 
                 // find 8 landmark points
-                LandmarkList output_landmarks;
-                NormalizedLandmarkList output_norm_landmarks;
-                MP_RETURN_IF_ERROR(getLandmarksFromPeaks(center_offset_buffer, hw_buffer, obj.idx, obj.jdx, row_size, col_size,
-                                      &output_landmarks, &output_norm_landmarks));
+                // LandmarkList output_landmarks;
+                // NormalizedLandmarkList output_norm_landmarks;
+                // MP_RETURN_IF_ERROR(getLandmarksFromPeaks(center_offset_buffer, hw_buffer, obj.idx, obj.jdx, row_size, col_size,
+                //                       &output_landmarks, &output_norm_landmarks));
 
                 // add to detection output
-                MP_RETURN_IF_ERROR(ConvertToDetections(output_norm_landmarks, obj.score,
-                                                       output_detections.get()));
+                MP_RETURN_IF_ERROR(GetDetectionFromModel(
+                    wh2d_buffer,
+                    obj.idx, obj.jdx, row_size, col_size,
+                    down_ratio_,
+                    obj.score,
+                    output_detections.get()
+                ));
                 priority_queue_.pop();
             }
         }
@@ -335,6 +337,46 @@ namespace mediapipe {
 
         return absl::OkStatus();
     }
+
+      absl::Status TfLiteTensorsToToyDetectionCalculator::GetDetectionFromModel(const float* hw2d_buffer, int idx, int jdx, int row_size, int col_size, float down_ratio_, float score, std::vector<Detection>* output_detections) {
+        float xs = jdx;
+        float ys = idx;
+        Detection detection;
+        detection.add_score(score);
+        detection.add_label("toys");
+        LocationData* location_data = detection.mutable_location_data();
+        location_data->set_format(LocationData::RELATIVE_BOUNDING_BOX);
+        LocationData::RelativeBoundingBox* relative_bbox =
+            location_data->mutable_relative_bounding_box();
+        float delta_x = getValFromBuffer(hw2d_buffer, 0, idx, jdx, row_size, col_size);
+        float delta_y = getValFromBuffer(hw2d_buffer, 1, idx, jdx, row_size, col_size);
+        float min_x = (xs - delta_x) * down_ratio_;
+        if (flip_horizontally_) min_x = input_width_ - min_x;
+        float min_y = (ys - delta_y) * down_ratio_;
+        if (flip_vertically_) min_y = input_height_ - min_y;
+
+        delta_x = getValFromBuffer(hw2d_buffer, 2, idx, jdx, row_size, col_size);
+        delta_y = getValFromBuffer(hw2d_buffer, 3, idx, jdx, row_size, col_size);
+
+        float max_x = (xs + delta_x) * down_ratio_;
+        if (flip_horizontally_) max_x = input_width_ - max_x;
+        float max_y = (ys + delta_y) * down_ratio_;
+        if (flip_vertically_) max_y = input_height_ - max_y;
+
+        min_x /= input_width_;
+        min_y /= input_height_;
+        max_x /= input_width_;
+        max_y /= input_height_;
+
+        relative_bbox->set_xmin(min_x);
+        relative_bbox->set_ymin(min_y);
+        relative_bbox->set_width(max_x - min_x);
+        relative_bbox->set_height(max_y - min_y);
+
+        output_detections->emplace_back(detection);
+
+        return absl::OkStatus();
+      }
 
     absl::Status TfLiteTensorsToToyDetectionCalculator::LoadOptions(
             CalculatorContext* cc) {
