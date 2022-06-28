@@ -67,7 +67,9 @@ node {
    output_stream: "DETECTIONS:output_detections"
    options: {
      [mediapipe.TfLiteTensorsToToyDetectionCalculatorOptions.ext] {
+       num_boxes: 2
        num_landmarks: 8
+       min_score_thresh: 0.2
        input_image_width: 256
        input_image_height: 256
      }
