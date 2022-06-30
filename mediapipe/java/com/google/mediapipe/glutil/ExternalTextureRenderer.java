@@ -66,7 +66,8 @@ public class ExternalTextureRenderer {
   private int textureTransformUniform;
   private float[] textureTransformMatrix = new float[16];
   private boolean flipY;
-  private int rotation = Surface.ROTATION_0;
+//  private int rotation = Surface.ROTATION_0;
+  private int rotation = Surface.ROTATION_90;
 
   /** Call this to setup the shader program before rendering. */
   public void setup() {
