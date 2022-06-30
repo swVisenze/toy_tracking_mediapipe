@@ -111,6 +111,8 @@ absl::Status RunMPPGraph() {
     // Send image packet into the graph.
     size_t frame_timestamp_us =
         (double)cv::getTickCount() / (double)cv::getTickFrequency() * 1e6;
+
+//    LOG(INFO) << "frame_timestamp_us: " << frame_timestamp_us;
     MP_RETURN_IF_ERROR(graph.AddPacketToInputStream(
         kInputStream, mediapipe::Adopt(input_frame.release())
                           .At(mediapipe::Timestamp(frame_timestamp_us))));

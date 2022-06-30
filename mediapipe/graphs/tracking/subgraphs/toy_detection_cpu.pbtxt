@@ -16,8 +16,8 @@ node: {
   output_stream: "IMAGE:transformed_input_video"
   node_options: {
     [type.googleapis.com/mediapipe.ImageTransformationCalculatorOptions] {
-      output_width: 256
-      output_height: 256
+      output_width: 384
+      output_height: 384
     }
   }
 }
@@ -52,11 +52,14 @@ node {
   output_stream: "TENSORS:output_tensor"
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
-      model_path: "mediapipe/models/toy_detection_mobilenet.tflite"
-      output_tensor_index: 775  #wh 1,16,32,32
-      output_tensor_index: 752  #center_offset 1,2,32,32
-      output_tensor_index: 743  #heatmap 1,1,32,32
-      output_tensor_index: 745  #hmax 1,1,32,32
+      model_path: "mediapipe/models/toy_detection_efficientnet.tflite"
+      output_tensor_index: 1009  #wh 1,16,48,48
+      output_tensor_index: 976   #center_offset 1,2,48,48
+      output_tensor_index: 967   #heatmap 1,1,48,48
+      output_tensor_index: 969   #hmax 1,1,48,48
+      output_tensor_index: 1017  #wh2d 1,4,48,48
+      output_tensor_index: 984   #heatmap2d 1,1,48,48
+      output_tensor_index: 986   #h2dmax 1,1,24,24
     }
   }
 }
@@ -67,11 +70,11 @@ node {
    output_stream: "DETECTIONS:output_detections"
    options: {
      [mediapipe.TfLiteTensorsToToyDetectionCalculatorOptions.ext] {
-       num_boxes: 2
+       num_boxes: 1
        num_landmarks: 8
        min_score_thresh: 0.2
-       input_image_width: 256
-       input_image_height: 256
+       input_image_width: 384
+       input_image_height: 384
      }
    }
 }

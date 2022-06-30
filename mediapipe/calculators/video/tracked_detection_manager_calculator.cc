@@ -223,6 +223,7 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       // update from the tracker.
       auto waiting_for_update_detectoin_ptr =
           waiting_for_update_detections_.find(tracked_box.id());
+      LOG(INFO) << "tracked box id: " << tracked_box.id();
       if (waiting_for_update_detectoin_ptr !=
           waiting_for_update_detections_.end()) {
         // Add the detection and remove duplicated detections.
@@ -252,11 +253,14 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
         // The timestamp is incremented (by 1 us) because currently the box
         // tracker calculator only accepts one cancel object ID for any given
         // timestamp.
+        LOG(INFO) << "box_id (cancel id): "<<box_id <<" at: "<<timestamp.Microseconds() / 1000;
         cc->Outputs()
             .Tag(kCancelObjectIdTag)
             .AddPacket(mediapipe::MakePacket<int>(box_id).At(timestamp++));
       }
     }
+
+//    LOG(INFO) << "current timestamp: "<<GetInputTimestampMs(cc) << " removed_ids size: "<< removed_ids.size();
 
     // Output detections and corresponding bounding boxes.
     const auto& all_detections =
@@ -269,6 +273,7 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       // Only output detections that are synced.
       if (detection.last_updated_timestamp() <
           cc->InputTimestamp().Microseconds() / 1000) {
+        LOG(INFO) << "output detection not sync skip";
         continue;
       }
       output_detections->emplace_back(
@@ -276,6 +281,7 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       output_boxes->emplace_back(detection.bounding_box());
     }
     if (cc->Outputs().HasTag(kDetectionsTag)) {
+      LOG(INFO) <<"output detections of size: "<<output_detections->size()<<" at: "<< cc->InputTimestamp().Microseconds() / 1000;
       cc->Outputs()
           .Tag(kDetectionsTag)
           .Add(output_detections.release(), cc->InputTimestamp());
@@ -290,9 +296,10 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
 
   if (cc->Inputs().HasTag(kDetectionsTag) &&
       !cc->Inputs().Tag(kDetectionsTag).IsEmpty()) {
-    const auto detections =
+      LOG(INFO) << "input detection at: "<< cc->InputTimestamp().Microseconds() / 1000;
+      const auto detections =
         cc->Inputs().Tag(kDetectionsTag).Get<std::vector<Detection>>();
-    AddDetections(detections, cc);
+      AddDetections(detections, cc);
   }
 
   if (cc->Inputs().HasTag(kDetectionListTag) &&
@@ -327,6 +334,7 @@ void TrackedDetectionManagerCalculator::AddDetections(
             detection, cc->InputTimestamp().Microseconds() / 1000);
 
     const int id = new_detection->unique_id();
+    LOG(INFO) << "add detection with id: " << id;
     waiting_for_update_detections_[id] = std::move(new_detection);
   }
 }

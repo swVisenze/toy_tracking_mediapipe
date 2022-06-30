@@ -155,7 +155,7 @@ namespace mediapipe {
         int row_size = input_height_ / down_ratio_;
         int col_size = input_width_ / down_ratio_;
 
-        LOG(INFO) << "Check wh2d";
+//        LOG(INFO) << "Check wh2d";
         const TfLiteTensor* wh2d_tensor = &input_tensors[4];
         CHECK_EQ(wh2d_tensor->dims->size, 4);
         CHECK_EQ(wh2d_tensor->dims->data[0], 1);
@@ -167,7 +167,7 @@ namespace mediapipe {
         CHECK_EQ(wh2d_col_size, col_size);
         const float* wh2d_buffer = wh2d_tensor->data.f;
 
-        LOG(INFO) << "Check heatmap2d";
+//        LOG(INFO) << "Check heatmap2d";
         const TfLiteTensor* heatmap2d_tensor = &input_tensors[5];
         CHECK_EQ(heatmap2d_tensor->dims->size, 4);
         CHECK_EQ(heatmap2d_tensor->dims->data[0], 1);
@@ -178,7 +178,7 @@ namespace mediapipe {
         CHECK_EQ(heatmap_col_size, col_size);
         const float* heatmap_buffer = heatmap2d_tensor->data.f;
 
-        LOG(INFO) << "Check heatmap2d max";
+//        LOG(INFO) << "Check heatmap2d max";
         const TfLiteTensor* h2dmax_tensor = &input_tensors[6];
         CHECK_EQ(h2dmax_tensor->dims->size, 4);
         CHECK_EQ(h2dmax_tensor->dims->data[0], 1);
@@ -190,7 +190,7 @@ namespace mediapipe {
         const float* hmax_buffer = h2dmax_tensor->data.f;
 
         std::priority_queue<IndexObj, std::vector<IndexObj>, CompareIndexObj> priority_queue_;
-        LOG(INFO) << "Tensor chec is done. Get topK peeks...";
+//        LOG(INFO) << "Tensor chec is done. Get topK peeks...";
         getTopKPeaksFromChannel(hmax_buffer, heatmap_buffer, 0, row_size, col_size, &priority_queue_);
 
 
@@ -199,7 +199,7 @@ namespace mediapipe {
         for (int i=0; i<num_boxes; i++) {
             if(priority_queue_.size() > 0) {
                 IndexObj obj = priority_queue_.top();
-                LOG(INFO) << "score: " << obj.score <<" idx: " << obj.idx <<" jdx: "<<obj.jdx;
+//                LOG(INFO) << "score: " << obj.score <<" idx: " << obj.idx <<" jdx: "<<obj.jdx;
 
                 // find 8 landmark points
                 // LandmarkList output_landmarks;

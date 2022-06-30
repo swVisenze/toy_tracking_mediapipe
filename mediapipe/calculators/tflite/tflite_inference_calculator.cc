@@ -22,6 +22,7 @@
 #include "mediapipe/framework/calculator_framework.h"
 #include "mediapipe/framework/port/ret_check.h"
 #include "mediapipe/util/tflite/config.h"
+#include "mediapipe/framework/deps/clock.h"
 
 #if !defined(__EMSCRIPTEN__) || defined(__EMSCRIPTEN_PTHREADS__)
 #include "mediapipe/util/cpu_util.h"
@@ -299,6 +300,7 @@ class TfLiteInferenceCalculator : public CalculatorBase {
 
   bool use_advanced_gpu_api_ = false;
   bool allow_precision_loss_ = false;
+  bool log_time_ = false;
   mediapipe::TfLiteInferenceCalculatorOptions::Delegate::Gpu::Api
       tflite_gpu_runner_api_;
   mediapipe::TfLiteInferenceCalculatorOptions::Delegate::Gpu::InferenceUsage
@@ -389,6 +391,8 @@ absl::Status TfLiteInferenceCalculator::Open(CalculatorContext* cc) {
     }
   }
 
+  log_time_ = options.log_time();
+
   gpu_inference_ = ShouldUseGpu(cc);
   gpu_input_ = cc->Inputs().HasTag(kTensorsGpuTag);
   gpu_output_ = cc->Outputs().HasTag(kTensorsGpuTag);
@@ -441,6 +445,12 @@ absl::Status TfLiteInferenceCalculator::Open(CalculatorContext* cc) {
 
 absl::Status TfLiteInferenceCalculator::Process(CalculatorContext* cc) {
   return RunInContextIfNeeded([this, cc]() -> absl::Status {
+    auto clock = Clock::RealClock();
+    absl::Time t1, t2;
+    if(log_time_) {
+      t1 = clock->TimeNow();
+    }
+
     // 0. Declare outputs
     auto output_tensors_gpu = absl::make_unique<std::vector<GpuTensor>>();
     auto output_tensors_cpu = absl::make_unique<std::vector<TfLiteTensor>>();
@@ -483,7 +493,10 @@ absl::Status TfLiteInferenceCalculator::Process(CalculatorContext* cc) {
     } else {
       MP_RETURN_IF_ERROR(ProcessOutputsCpu(cc, std::move(output_tensors_cpu)));
     }
-
+    if(log_time_) {
+      absl::Time t2 = clock->TimeNow();
+      LOG(INFO) << "time taken: " << t2 - t1;
+    }
     return absl::OkStatus();
   });
 }
