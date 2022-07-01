@@ -95,6 +95,15 @@ node {
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
       model_path: "mediapipe/models/toy_detection_efficientnet.tflite"
+      #delegate {
+      #  gpu {
+      #      api: OPENGL
+      #      use_advanced_gpu_api: true
+      #  }
+      #}
+      # delegate { xnnpack {} }
+      # delegate { nnapi {} }
+      # delegate { tflite {} }
       output_tensor_index: 1009  #wh 1,16,48,48
       output_tensor_index: 976   #center_offset 1,2,48,48
       output_tensor_index: 967   #heatmap 1,1,48,48
