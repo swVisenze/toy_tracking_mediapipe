@@ -37,7 +37,7 @@ android_binary(
     srcs = glob(["*.java"]),
     assets = [
         "//mediapipe/graphs/tracking:toy_mobile_cpu.binarypb",
-        "//mediapipe/models:toy_detection_mobilenet.tflite"
+        "//mediapipe/models:toy_detection_efficientnet.tflite"
     ],
     assets_dir = "",
     manifest = "//mediapipe/examples/android/src/java/com/google/mediapipe/apps/basic:AndroidManifest.xml",

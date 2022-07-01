@@ -53,6 +53,7 @@ node {
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
       model_path: "mediapipe/models/toy_detection_efficientnet.tflite"
+      delegate { xnnpack {} }
       output_tensor_index: 1009  #wh 1,16,48,48
       output_tensor_index: 976   #center_offset 1,2,48,48
       output_tensor_index: 967   #heatmap 1,1,48,48
@@ -72,7 +73,7 @@ node {
      [mediapipe.TfLiteTensorsToToyDetectionCalculatorOptions.ext] {
        num_boxes: 1
        num_landmarks: 8
-       min_score_thresh: 0.2
+       min_score_thresh: 0.5
        input_image_width: 384
        input_image_height: 384
      }

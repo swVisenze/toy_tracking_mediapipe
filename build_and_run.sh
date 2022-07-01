@@ -10,7 +10,8 @@ export GLOG_logtostderr=1
 #GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_detection/object_detection_cpu \
 #  --calculator_graph_config_file=mediapipe/graphs/object_detection/object_detection_desktop_live.pbtxt \
 #  --input_video_path=test_video/origin_video.mp4 --output_video_path=test_video/origin_detection_out.mp4
-bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/objectdetectioncpu:objectdetectioncpu
+
+#bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/objectdetectioncpu:objectdetectioncpu
 #bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/objectdetectiongpu:objectdetectiongpu
 
 ### toy detection
@@ -42,6 +43,6 @@ bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapi
 #  --calculator_graph_config_file=mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt \
 #  --input_video_path=test_video/toy_single_2.mp4 --output_video_path=test_video/toy_single_2_tracking.mp4
 
-#bazel build -c opt --config=android_arm64 mediapipe/examples/android/src/java/com/google/mediapipe/apps/toytrackingcpu:toytrackingcpu
+bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/toytrackingcpu:toytrackingcpu
 # test
 #bazel test -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/calculators/tflite:tflite_converter_calculator_test

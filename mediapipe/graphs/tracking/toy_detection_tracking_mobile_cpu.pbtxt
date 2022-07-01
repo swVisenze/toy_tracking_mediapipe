@@ -1,3 +1,10 @@
+profiler_config {
+  trace_enabled: true
+  enable_profiler: true
+  trace_log_interval_count: 200
+  trace_log_path: "/sdcard/Download/"
+}
+
 # Images on GPU coming into and out of the graph.
 input_stream: "input_video"
 output_stream: "output_video"
