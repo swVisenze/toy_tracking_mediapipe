@@ -46,7 +46,8 @@ ios_application(
     minimum_os_version = MIN_IOS_VERSION,
     provisioning_profile = example_provisioning(),
     deps = [
-        ":ObjectDetectionCpuAppLibrary",
+#        ":ObjectDetectionCpuAppLibrary",
+        ":ToyDetectionCpuAppLibrary",
         "@ios_opencv//:OpencvFramework",
     ],
 )
@@ -57,6 +58,45 @@ objc_library(
         "//mediapipe/graphs/object_detection:mobile_cpu_binary_graph",
         "//mediapipe/models:ssdlite_object_detection.tflite",
         "//mediapipe/models:ssdlite_object_detection_labelmap.txt",
+    ],
+    deps = [
+        "//mediapipe/examples/ios/common:CommonMediaPipeAppLibrary",
+    ] + select({
+        "//mediapipe:ios_i386": [],
+        "//mediapipe:ios_x86_64": [],
+        "//conditions:default": [
+            "//mediapipe/graphs/object_detection:mobile_calculators",
+        ],
+    }),
+)
+
+
+ios_application(
+    name = "ToyDetectionCpuApp",
+    app_icons = ["//mediapipe/examples/ios/common:AppIcon"],
+    bundle_id = BUNDLE_ID_PREFIX + ".ToyDetectionCpu",
+#    bundle_id = "com.visenze.tracking.demo",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//mediapipe/examples/ios/common:Info.plist",
+        "Info.plist",
+    ],
+    minimum_os_version = MIN_IOS_VERSION,
+    provisioning_profile = example_provisioning(),
+    deps = [
+        ":ToyDetectionCpuAppLibrary",
+        "@ios_opencv//:OpencvFramework",
+    ],
+)
+
+objc_library(
+    name = "ToyDetectionCpuAppLibrary",
+    data = [
+        "//mediapipe/graphs/object_detection:mobile_toy_cpu_binary_graph",
+        "//mediapipe/models:toy_detection_mobilenet.tflite",
     ],
     deps = [
         "//mediapipe/examples/ios/common:CommonMediaPipeAppLibrary",
