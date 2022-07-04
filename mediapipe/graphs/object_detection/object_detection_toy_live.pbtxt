@@ -45,7 +45,7 @@ node {
   output_stream: "TENSORS:image_tensor"
   options: {
      [mediapipe.TfLiteConverterCalculatorOptions.ext] {
-       output_type: NCHW
+       output_type: NHWC
        zero_center: false
        norms: 58.395
        norms: 57.12
@@ -67,13 +67,13 @@ node {
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
       model_path: "mediapipe/models/toy_detection_mobilenet.tflite"
-      output_tensor_index: 1009  #wh 1,16,48,48
-      output_tensor_index: 976   #center_offset 1,2,48,48
-      output_tensor_index: 967   #heatmap 1,1,48,48
-      output_tensor_index: 969   #hmax 1,1,48,48
-      output_tensor_index: 1017  #wh2d 1,4,48,48
-      output_tensor_index: 984   #heatmap2d 1,1,48,48
-      output_tensor_index: 986   #h2dmax 1,1,24,24
+      output_tensor_index: 694   #wh 1,16,48,48
+      output_tensor_index: 684   #center_offset 1,2,48,48
+      output_tensor_index: 689   #heatmap 1,1,48,48
+      output_tensor_index: 699   #hmax 1,1,48,48
+      output_tensor_index: 705   #wh2d 1,4,48,48
+      output_tensor_index: 690   #heatmap2d 1,1,48,48
+      output_tensor_index: 700   #h2dmax 1,1,24,24
     }
   }
 }
