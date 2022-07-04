@@ -102,6 +102,21 @@ std::vector<int> TrackedDetectionManager::UpdateDetectionLocation(
   return RemoveDuplicatedDetections(detection.unique_id());
 }
 
+std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
+  std::vector<int> ids_to_remove;
+  if(detections_.size() > 1) { // there is already a tracked target toy. remove all others
+    for (auto& existing_detection : detections_) {
+      if (existing_detection.second->previous_id() < 0) {
+        ids_to_remove.push_back(existing_detection.first);
+      }
+    }
+  }
+  for (auto idx : ids_to_remove) {
+    detections_.erase(idx);
+  }
+  return ids_to_remove;
+}
+
 std::vector<int> TrackedDetectionManager::RemoveObsoleteDetections(
     int64 timestamp) {
   std::vector<int> ids_to_remove;

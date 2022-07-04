@@ -83,6 +83,8 @@ absl::Status RunMPPGraph() {
 
   LOG(INFO) << "Start grabbing and processing frames.";
   bool grab_frames = true;
+  size_t cur_time_us = 1;
+  size_t time_gap_us = 50000; // 50 ms -> 20 fps
   while (grab_frames) {
     // Capture opencv camera or video frame.
     cv::Mat camera_frame_raw;
@@ -109,14 +111,15 @@ absl::Status RunMPPGraph() {
     camera_frame.copyTo(input_frame_mat);
 
     // Send image packet into the graph.
-    size_t frame_timestamp_us =
-        (double)cv::getTickCount() / (double)cv::getTickFrequency() * 1e6;
+//    size_t frame_timestamp_us =
+//        (double)cv::getTickCount() / (double)cv::getTickFrequency() * 1e6;
 
 //    LOG(INFO) << "frame_timestamp_us: " << frame_timestamp_us;
     MP_RETURN_IF_ERROR(graph.AddPacketToInputStream(
         kInputStream, mediapipe::Adopt(input_frame.release())
-                          .At(mediapipe::Timestamp(frame_timestamp_us))));
+                          .At(mediapipe::Timestamp(cur_time_us))));
 
+    cur_time_us = cur_time_us + time_gap_us;
     // Get the graph result packet, or stop if that fails.
     mediapipe::Packet packet;
     if (!poller.Next(&packet)) break;

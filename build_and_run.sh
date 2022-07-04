@@ -24,7 +24,7 @@ export GLOG_logtostderr=1
 #bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_detection:object_detection_image
 #GLOG_logptostderr=1 bazel-bin/mediapipe/examples/desktop/object_detection/object_detection_image \
 #  --calculator_graph_config_file=mediapipe/graphs/object_detection/object_detection_toy_live.pbtxt \
-#  --input_image_path=test_video/toy_img_2.png --output_image_path=test_video/toy_img_2_output.jpg
+#  --input_image_path=../mediapipe_test_video/test_img.png --output_image_path=../mediapipe_test_video/test_img_out.jpg
 
 #bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/objectdetectioncpu:toydetectioncpu
 #bazel build -c dbg --config=android_arm64 mediapipe/examples/android/src/java/com/google/mediapipe/apps/objectdetectioncpu:toydetectioncpu
@@ -39,10 +39,10 @@ export GLOG_logtostderr=1
 
 #### toy tracking
 #bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_tracking:toy_tracking_cpu
-#GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu \
-#  --calculator_graph_config_file=mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt \
-#  --input_video_path=test_video/toy_single_2.mp4 --output_video_path=test_video/toy_single_2_tracking.mp4
+GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu \
+  --calculator_graph_config_file=mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt \
+  --input_video_path=../mediapipe_test_video/vd113_bg_toys.MOV --output_video_path=../mediapipe_test_video/vd113_bg_toys_tracking_detection_3.mp4
 
-bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/toytrackingcpu:toytrackingcpu
+#bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/toytrackingcpu:toytrackingcpu
 # test
 #bazel test -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/calculators/tflite:tflite_converter_calculator_test
