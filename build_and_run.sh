@@ -19,7 +19,7 @@ export GLOG_logtostderr=1
 
 #GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_detection/object_detection_cpu \
 #  --calculator_graph_config_file=mediapipe/graphs/object_detection/object_detection_toy_desktop_cpu.pbtxt \
-#  --input_video_path=test_video/toy_double_1.mp4 --output_video_path=test_video/toy_double_1_detection_out.mp4
+#  --input_video_path=../mediapipe_test_video/vd113_bg_toys.MOV --output_video_path=../mediapipe_test_video/vd113_bg_toys_detection_3.mp4
 
 #bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_detection:object_detection_image
 #GLOG_logptostderr=1 bazel-bin/mediapipe/examples/desktop/object_detection/object_detection_image \
@@ -39,9 +39,9 @@ export GLOG_logtostderr=1
 
 #### toy tracking
 #bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_tracking:toy_tracking_cpu
-GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu \
-  --calculator_graph_config_file=mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt \
-  --input_video_path=../mediapipe_test_video/vd113_bg_toys.MOV --output_video_path=../mediapipe_test_video/vd113_bg_toys_tracking_detection_3.mp4
+#GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu \
+#  --calculator_graph_config_file=mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt \
+#  --input_video_path=../mediapipe_test_video/vd113_bg_toys.MOV --output_video_path=../mediapipe_test_video/vd113_bg_toys_tracking_detection_3.mp4
 
 #bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/toytrackingcpu:toytrackingcpu
 # test
