@@ -46,8 +46,8 @@ ios_application(
     minimum_os_version = MIN_IOS_VERSION,
     provisioning_profile = example_provisioning(),
     deps = [
-#        ":ObjectDetectionCpuAppLibrary",
-        ":ToyDetectionCpuAppLibrary",
+        ":ObjectDetectionCpuAppLibrary",
+#        ":ToyDetectionCpuAppLibrary",
         "@ios_opencv//:OpencvFramework",
     ],
 )

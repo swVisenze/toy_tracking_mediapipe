@@ -192,13 +192,13 @@ namespace mediapipe {
 
         std::priority_queue<IndexObj, std::vector<IndexObj>, CompareIndexObj> priority_queue_;
 
-        LOG(INFO) << "Tensor chec is done. Get topK peeks...";
+//        LOG(INFO) << "Tensor chec is done. Get topK peeks...";
         int channel_size = 1; // Heatmap only uses 1 channel for now.
         getTopKPeaksFromChannel(hmax_buffer, heatmap_buffer, 0, row_size, col_size, channel_size, &priority_queue_);
 
         auto output_detections = absl::make_unique<std::vector<Detection>>();
         int num_boxes = num_boxes_ < priority_queue_.size() ? num_boxes_: priority_queue_.size();
-        LOG(INFO) << "number of peaks: " << priority_queue_.size();
+//        LOG(INFO) << "number of peaks: " << priority_queue_.size();
         for (int i=0; i<num_boxes; i++) {
             if(priority_queue_.size() > 0) {
                 IndexObj obj = priority_queue_.top();
@@ -292,8 +292,8 @@ namespace mediapipe {
 //                LOG(INFO) <<"hmax_score: " << hmax_score << " idx: " << idx  << " jdx: " << jdx;
 //                LOG(INFO) <<"heatmap_score: " << heatmap_score << " idx: " << idx  << " jdx: " << jdx;
                 if(hmax_score == heatmap_score && heatmap_score > min_score_thresh_) {
-                    LOG(INFO) <<"hmax_score: " << hmax_score << " idx: " << idx  << " jdx: " << jdx;
-                    LOG(INFO) <<"heatmap_score: " << heatmap_score << " idx: " << idx  << " jdx: " << jdx;
+//                    LOG(INFO) <<"hmax_score: " << hmax_score << " idx: " << idx  << " jdx: " << jdx;
+//                    LOG(INFO) <<"heatmap_score: " << heatmap_score << " idx: " << idx  << " jdx: " << jdx;
                     priority_queue_output->push({idx, jdx, heatmap_score});
                 }
             }

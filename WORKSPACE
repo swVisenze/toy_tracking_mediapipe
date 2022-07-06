@@ -424,5 +424,6 @@ android_sdk_repository(
 )
 android_ndk_repository(
   name="androidndk",
+  path="/Users/siwei/Library/Android/sdk/ndk/21.1.6352462",
   api_level=21
 )
