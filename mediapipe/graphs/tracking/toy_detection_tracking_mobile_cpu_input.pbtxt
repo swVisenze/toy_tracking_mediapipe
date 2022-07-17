@@ -1,0 +1,34 @@
+# Images on CPU coming into and out of the graph.
+input_stream: "input_video_cpu"
+output_stream: "tracked_detections"
+
+
+# Resamples the images by specific frame rate. This calculator is used to
+# control the frequecy of subsequent calculators/subgraphs, e.g. less power
+# consumption for expensive process.
+node {
+  calculator: "PacketResamplerCalculator"
+  input_stream: "DATA:input_video_cpu"
+  output_stream: "DATA:throttled_input_video"
+  node_options: {
+    [type.googleapis.com/mediapipe.PacketResamplerCalculatorOptions] {
+      frame_rate: 2
+    }
+  }
+}
+
+# Subgraph that detections objects (see toy_detection_cpu.pbtxt).
+node {
+  calculator: "ToyDetectionSubgraphCpu"
+  input_stream: "IMAGE:throttled_input_video"
+  output_stream: "DETECTIONS:output_detections"
+}
+
+# Subgraph that tracks objects (see object_tracking_cpu.pbtxt).
+node {
+  calculator: "ObjectTrackingSubgraphCpu"
+  input_stream: "VIDEO:input_video_cpu"
+  input_stream: "DETECTIONS:output_detections"
+  output_stream: "DETECTIONS:tracked_detections"
+}
+

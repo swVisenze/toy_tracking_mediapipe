@@ -1,6 +1,6 @@
 export GLOG_logtostderr=1
 
-#bazel build --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/hello_swtry:hello_swtry
+#bazel build --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop:demo_process_image_main
 #GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/hello_swtry/hello_swtry \
 #   --calculator_graph_config_file=mediapipe/examples/desktop/hello_swtry/test_graph.pbtxt
 
@@ -14,20 +14,30 @@ export GLOG_logtostderr=1
 #bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/objectdetectioncpu:objectdetectioncpu
 #bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/objectdetectiongpu:objectdetectiongpu
 
+
+#bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/graphs/object_detection:desktop_tflite_calculators
 ### toy detection
 #bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_detection:object_detection_cpu
+
+#bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/desktop/object_detection:object_detection_cpu
 
 #GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_detection/object_detection_cpu \
 #  --calculator_graph_config_file=mediapipe/graphs/object_detection/object_detection_toy_desktop_cpu.pbtxt \
 #  --input_video_path=../mediapipe_test_video/test_05_Jul/1_vd217_bg_clear.MOV --output_video_path=../mediapipe_test_video/test_05_Jul/1_vd217_bg_clear_detection_3.mp4
 
+#GLOG_logtostderr=1 ./object_detection_cpu \
+#  --calculator_graph_config_file=mediapipe/graphs/object_detection/object_detection_toy_desktop_cpu.pbtxt \
+#  --input_video_path=../mediapipe_test_video/test_05_Jul/1_vd217_bg_clear.MOV --output_video_path=../mediapipe_test_video/test_05_Jul/1_vd217_bg_clear_detection_3.mp4
+
+
 #bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_detection:object_detection_image
 #GLOG_logptostderr=1 bazel-bin/mediapipe/examples/desktop/object_detection/object_detection_image \
 #  --calculator_graph_config_file=mediapipe/graphs/object_detection/object_detection_toy_live.pbtxt \
-#  --input_image_path=../mediapipe_test_video/test_img.png --output_image_path=../mediapipe_test_video/test_img_out_1.jpg
+#  --input_image_path=../mediapipe_test_video/test_img.png --output_image_path=../mediapipe_test_video/test_img_out_1_quan.jpg
 
-#bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/objectdetectioncpu:toydetectioncpu
+#bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/objectdetectioncpu:libmediapipe_jni.so
 #bazel build -c dbg --config=android_arm64 mediapipe/examples/android/src/java/com/google/mediapipe/apps/objectdetectioncpu:toydetectioncpu
+
 
 
 ##### object tracking
@@ -39,11 +49,46 @@ export GLOG_logtostderr=1
 
 #### toy tracking
 #bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_tracking:toy_tracking_cpu
-GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu \
-  --calculator_graph_config_file=mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt \
-  --input_video_path=../mediapipe_test_video/test_05_Jul/34_vd080_phone_drop.MOV \
-  --output_video_path=../mediapipe_test_video/test_05_Jul/0_detection_fps_2_max_3_score_0.5/34_vd080_phone_drop.mp4
+#GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu \
+#  --calculator_graph_config_file=mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt \
+#  --input_video_path=../mediapipe_test_video/test_05_Jul/1_vd217_bg_clear.MOV \
+#  --output_video_path=../mediapipe_test_video/test_05_Jul/0_detection_fps_2_max_3_score_0.5/1_vd217_bg_clear.mp4
 
 #bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/toytrackingcpu:toytrackingcpu
 # test
 #bazel test -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/calculators/tflite:tflite_converter_calculator_test
+
+## build aar
+#bazel build -c opt --strip=ALWAYS \
+#    --host_crosstool_top=@bazel_tools//tools/cpp:toolchain \
+#    --fat_apk_cpu=arm64-v8a,armeabi-v7a \
+#    --legacy_whole_archive=0 \
+#    --features=-legacy_whole_archive \
+#    --copt=-fvisibility=hidden \
+#    --copt=-ffunction-sections \
+#    --copt=-fdata-sections \
+#    --copt=-fstack-protector \
+#    --copt=-Oz \
+#    --copt=-fomit-frame-pointer \
+#    --copt=-DABSL_MIN_LOG_LEVEL=2 \
+#    --linkopt=-Wl,--gc-sections,--strip-all \
+#    //mediapipe/examples/android/src/java/com/google/mediapipe/apps/aar_example:mediapipe_toy_tracking.aar
+
+## see log
+# adb logcat -s native | grep graph
+# adb shell "export GLOG_logtostderr=1"
+## build toy tracking lib
+bazel build -c opt --strip=ALWAYS \
+    --host_crosstool_top=@bazel_tools//tools/cpp:toolchain \
+    --fat_apk_cpu=arm64-v8a,armeabi-v7a \
+    --legacy_whole_archive=0 \
+    --features=-legacy_whole_archive \
+    --copt=-fvisibility=hidden \
+    --copt=-ffunction-sections \
+    --copt=-fdata-sections \
+    --copt=-fstack-protector \
+    --copt=-Oz \
+    --copt=-fomit-frame-pointer \
+    --copt=-DABSL_MIN_LOG_LEVEL=2 \
+    --linkopt=-Wl,--gc-sections,--strip-all \
+    //mediapipe/java/com/visenze:mediapipe_toy_tracking.aar

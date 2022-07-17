@@ -66,7 +66,9 @@ node {
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
       model_path: "mediapipe/models/toy_detection_efficientnet_hwc.tflite"
-      delegate { xnnpack {} }
+      # model_path: "mediapipe/models/toy_detection_efficientnet_hwc_quan.tflite"
+      log_time: true
+      #delegate { xnnpack {} }
       output_tensor_index: 694   #wh 1,48,48,16
       output_tensor_index: 684   #center_offset 1,48,48,2
       output_tensor_index: 689   #heatmap 1,48,48,1

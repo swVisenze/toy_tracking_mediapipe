@@ -35,6 +35,7 @@ cc_library(
         "packet_creator_jni.cc",
         "packet_getter_jni.cc",
         "graph_profiler_jni.cc",
+        "toy_tracking.cc"
     ] + select({
         "//conditions:default": [],
         "//mediapipe:android": [
@@ -59,6 +60,7 @@ cc_library(
         "packet_creator_jni.h",
         "packet_getter_jni.h",
         "graph_profiler_jni.h",
+        "toy_tracking.h"
     ] + select({
         "//conditions:default": [],
         "//mediapipe:android": [

@@ -8,6 +8,7 @@ profiler_config {
 # Images on GPU coming into and out of the graph.
 input_stream: "input_video"
 output_stream: "output_video"
+output_stream: "tracked_detections"
 
 # Transfers the input image from GPU to CPU memory for the purpose of
 # demonstrating a CPU-based pipeline. Note that the input image on GPU has the

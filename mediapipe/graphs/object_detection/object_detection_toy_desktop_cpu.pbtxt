@@ -2,6 +2,13 @@
 # Used in the examples in
 # mediapipe/examples/desktop/object_detection:object_detection_cpu.
 
+profiler_config {
+  trace_enabled: true
+  enable_profiler: true
+  trace_log_interval_count: 200
+  trace_log_path: "./profile"
+}
+
 # Images on CPU coming into and out of the graph.
 input_stream: "input_video"
 output_stream: "output_video"

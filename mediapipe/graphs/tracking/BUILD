@@ -67,10 +67,12 @@ cc_library(
 
 mediapipe_binary_graph(
     name = "toy_mobile_cpu_binary_graph",
-    graph = "toy_detection_tracking_mobile_cpu.pbtxt",
+    graph = "toy_detection_tracking_mobile_cpu_input.pbtxt",
     output_name = "toy_mobile_cpu.binarypb",
     deps = [":toy_mobile_calculators"],
 )
+
+
 
 
 mediapipe_binary_graph(
