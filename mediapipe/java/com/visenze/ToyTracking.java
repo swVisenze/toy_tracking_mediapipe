@@ -38,6 +38,20 @@ public class ToyTracking {
         System.loadLibrary("opencv_java3");
     }
 
+    public static void init(Context context, int width, int height) {
+        AndroidAssetUtil.initializeNativeAssetManager(context);
+        nativeInit(width, height);
+    }
+
+    public static void destroy() {
+        nativeDestroy();
+    }
+
+    private static native void nativeInit(int width, int heigth);
+
+    private static native void nativeDestroy();
+
+
     public ToyTracking(Context context) {
         // Initialize asset manager so that MediaPipe native libraries can access the app assets, e.g.,
         // binary graphs.
@@ -141,10 +155,6 @@ public class ToyTracking {
         }
     }
 
-    public void destroy() {
-
-    }
-
     private String getDetectionsDebugString(List<Detection> detections) {
         if(detections.size() == 0) {
             return "no detections";
@@ -174,7 +184,5 @@ public class ToyTracking {
             return false;
         }
     }
-
-
 
 }
