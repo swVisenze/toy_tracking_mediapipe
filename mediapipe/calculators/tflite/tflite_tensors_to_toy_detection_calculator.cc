@@ -344,8 +344,8 @@ namespace mediapipe {
     }
 
       absl::Status TfLiteTensorsToToyDetectionCalculator::GetDetectionFromModel(const float* hw2d_buffer, int idx, int jdx, int row_size, int col_size, int channel_size, float down_ratio_, float score, int category_id, std::vector<Detection>* output_detections) {
-        float xs = jdx;
-        float ys = idx;
+        float xs = jdx * down_ratio_;
+        float ys = idx * down_ratio_;
         Detection detection;
         detection.add_label_id(category_id);
         detection.add_score(score);
@@ -356,17 +356,17 @@ namespace mediapipe {
             location_data->mutable_relative_bounding_box();
         float delta_x = getValFromBuffer(hw2d_buffer, 0, idx, jdx, row_size, col_size, channel_size);
         float delta_y = getValFromBuffer(hw2d_buffer, 1, idx, jdx, row_size, col_size, channel_size);
-        float min_x = (xs - delta_x) * down_ratio_;
+        float min_x = (xs - delta_x); // * down_ratio_;
         if (flip_horizontally_) min_x = input_width_ - min_x;
-        float min_y = (ys - delta_y) * down_ratio_;
+        float min_y = (ys - delta_y); // * down_ratio_;
         if (flip_vertically_) min_y = input_height_ - min_y;
 
         delta_x = getValFromBuffer(hw2d_buffer, 2, idx, jdx, row_size, col_size, channel_size);
         delta_y = getValFromBuffer(hw2d_buffer, 3, idx, jdx, row_size, col_size, channel_size);
 
-        float max_x = (xs + delta_x) * down_ratio_;
+        float max_x = (xs + delta_x); // * down_ratio_;
         if (flip_horizontally_) max_x = input_width_ - max_x;
-        float max_y = (ys + delta_y) * down_ratio_;
+        float max_y = (ys + delta_y); // * down_ratio_;
         if (flip_vertically_) max_y = input_height_ - max_y;
 
         min_x /= input_width_;

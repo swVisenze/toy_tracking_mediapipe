@@ -2,6 +2,12 @@
 # Lite on CPU.
 # Used in the examples in
 # mediapipie/examples/desktop/object_tracking/
+profiler_config {
+  trace_enabled: true
+  enable_profiler: true
+  trace_log_interval_count: 200
+  trace_log_path: "./profile/default_model"
+}
 
 # Images on CPU coming into and out of the graph.
 input_stream: "input_video"
