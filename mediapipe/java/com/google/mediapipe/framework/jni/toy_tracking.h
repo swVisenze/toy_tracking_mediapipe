@@ -22,7 +22,7 @@ JNIEXPORT void JNICALL TOY_TRACKING_OUTPUT_METHOD(nativeDestroy)(
 
 JNIEXPORT void toy_tracking_reset(const char* code);
 
-JNIEXPORT const char* toy_tracking_tracking();
+JNIEXPORT const char* toy_tracking_tracking(const char* image_buffer, int size, int image_width, int image_height);
 
 
 }

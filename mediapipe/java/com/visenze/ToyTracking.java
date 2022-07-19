@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.google.mediapipe.framework.AndroidAssetUtil;
 import com.google.mediapipe.framework.AndroidPacketCreator;
-import com.google.mediapipe.framework.AssetCache;
 import com.google.mediapipe.framework.Graph;
 import com.google.mediapipe.framework.MediaPipeException;
 import com.google.mediapipe.framework.Packet;
@@ -41,7 +40,6 @@ public class ToyTracking {
 
     public static void init(Context context, int width, int height) {
         AndroidAssetUtil.initializeNativeAssetManager(context);
-        File graphFile = new File(context.getCacheDir().getAbsolutePath(), BINARY_GRAPH_NAME);
         nativeInit(width, height);
 //        byte[] data = AndroidAssetUtil.getAssetBytes(context.getAssets(), BINARY_GRAPH_NAME);
 //        nativeInit(data, width, height);
