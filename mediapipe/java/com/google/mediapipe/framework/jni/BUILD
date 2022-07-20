@@ -91,6 +91,8 @@ cc_library(
         "//mediapipe/framework/tool:calculator_graph_template_cc_proto",
         "//mediapipe/framework/formats:image_format_cc_proto",
         "//mediapipe/framework/formats:matrix_data_cc_proto",
+        "//mediapipe/framework/formats:detection_cc_proto",
+        "//mediapipe/framework/formats:location",
         "//mediapipe/framework/formats:time_series_header_cc_proto",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",

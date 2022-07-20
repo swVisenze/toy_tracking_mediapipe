@@ -5,6 +5,7 @@
 #include "mediapipe/java/com/google/mediapipe/framework/jni/toy_tracking.h"
 #include "mediapipe/java/com/google/mediapipe/framework/jni/jni_util.h"
 #include "mediapipe/framework/calculator_framework.h"
+#include "mediapipe/framework/formats/detection.pb.h"
 #include "mediapipe/util/android/asset_manager_util.h"
 #include "mediapipe/framework/formats/image.h"
 #include "mediapipe/framework/formats/image_format.pb.h"
@@ -24,6 +25,9 @@ std::string MPG_code;
 int image_width;
 int image_height;
 bool is_graph_running = false;
+size_t cur_time_us = 1;
+size_t time_gap_us = 50000; // 50 ms -> 20 fps
+
 mediapipe::CalculatorGraphConfig graph_config;
 std::unique_ptr<mediapipe::CalculatorGraph> graph;
 std::unique_ptr<mediapipe::OutputStreamPoller> poller;
@@ -95,27 +99,41 @@ JNIEXPORT void toy_tracking_reset(const char* code) {
 // this is native method NOT JNI method
 JNIEXPORT const char* toy_tracking_tracking(const char* image_buffer, int size, int width, int height) {
 //    //buffer is  in RGBA image format
-//    LOG(INFO) << "width: " << width << " height: "<< height << " size: " << size;
-//    const int expected_buffer_size = width * height * 4;
-//    if (size != expected_buffer_size) {
-//        LOG(INFO) << "unmatched size, expected size: " << expected_buffer_size;
-//        return "";
-//    }
-//    // create image frame, format RGBA
-//    auto image_format = mediapipe::ImageFormat::SRGBA;
-//    auto image_frame = std::make_unique<mediapipe::ImageFrame>(
-//            image_format, width, height,
-//            mediapipe::ImageFrame::kGlDefaultAlignmentBoundary);
-//    std::memcpy(image_frame->MutablePixelData(), image_buffer,
-//                image_frame->PixelDataSize());
-//    // create input packet
+    if(!is_graph_running) {
+        LOG(INFO) << "graph not run yet";
+        return "";
+    }
+
+    LOG(INFO) << "width: " << width << " height: "<< height << " size: " << size;
+    const int expected_buffer_size = width * height * 4;
+    if (size != expected_buffer_size) {
+        LOG(INFO) << "unmatched size, expected size: " << expected_buffer_size;
+        return "";
+    }
+    // create image frame, format RGBA
+    auto image_format = mediapipe::ImageFormat::SRGBA;
+    auto image_frame = std::make_unique<mediapipe::ImageFrame>(
+            image_format, width, height,
+            mediapipe::ImageFrame::kGlDefaultAlignmentBoundary);
+    std::memcpy(image_frame->MutablePixelData(), image_buffer,
+                image_frame->PixelDataSize());
+    // create input packet
 //    size_t frame_timestamp_us =
 //            (double)cv::getTickCount() / (double)cv::getTickFrequency() * 1e6;
-//    mediapipe::Packet packet = mediapipe::Adopt(image_frame.release()).At(mediapipe::Timestamp(frame_timestamp_us))));
-//
-//    // send packet to graph
-//    graph->AddPacketToInputStream(INPUT_VIDEO_STREAM_NAME, packet);
-//
+    cur_time_us = cur_time_us + time_gap_us;
+    mediapipe::Packet packet = mediapipe::Adopt(image_frame.release()).At(mediapipe::Timestamp(cur_time_us));
+    LOG(INFO) << "input frame_timestamp_us: " << cur_time_us;
+    // send packet to graph
+    graph->AddPacketToInputStream(INPUT_VIDEO_STREAM_NAME, packet);
+
+    mediapipe::Packet output_packet;
+    if (!poller->Next(&output_packet)) {
+        LOG(INFO) << "cannot get output packet";
+        return "";
+    }
+    LOG(INFO) << "output packet: "<<output_packet.DebugString();
+    auto& out_detection = output_packet.Get<std::vector<mediapipe::Detection>>();
+    LOG(INFO) <<"out detection size: "<<out_detection.size();
 
     const char *output = MPG_code.c_str();
     return output;
