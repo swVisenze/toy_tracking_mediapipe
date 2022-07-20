@@ -751,7 +751,7 @@ absl::Status TfLiteConverterCalculator::NormalizeImage(
       }
     }
   } else if(means_.size() == channels_preserved && norms_.size() == channels_preserved) {
-//      LOG(INFO) << "process mean and norm ";
+//      LOG(INFO) << "process mean and norm with channel: "<<channels_preserved;
       for (int i = 0; i < height; ++i) {
           const T* image_ptr = reinterpret_cast<const T*>(
                   image_frame.PixelData() +

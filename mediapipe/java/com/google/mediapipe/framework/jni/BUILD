@@ -60,7 +60,8 @@ cc_library(
         "packet_creator_jni.h",
         "packet_getter_jni.h",
         "graph_profiler_jni.h",
-        "toy_tracking.h"
+        "toy_tracking.h",
+        "json.hpp"
     ] + select({
         "//conditions:default": [],
         "//mediapipe:android": [
