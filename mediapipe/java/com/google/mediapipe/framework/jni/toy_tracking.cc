@@ -175,8 +175,11 @@ JNIEXPORT const char* toy_tracking_tracking(const char* image_buffer, int size, 
     jsonObj["track_box"] = track_box;
     jsonObj["debug_message"] = debug_message;
     std::string jsonStr = jsonObj.dump();
-    LOG(INFO) <<"json output: "<< jsonStr;
-    const char *output = jsonStr.c_str();
+//    LOG(INFO) <<"json output: "<< jsonStr;
+    // so strange this can output to unity ...
+    std::string dump = "" + jsonStr;
+    const char *output = dump.c_str();
+//    const char *output = MPG_code.c_str();
     return output;
  }
 
