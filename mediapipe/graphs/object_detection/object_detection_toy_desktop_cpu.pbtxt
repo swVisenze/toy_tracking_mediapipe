@@ -5,10 +5,10 @@ profiler_config {
   trace_enabled: true
   enable_profiler: true
   trace_log_interval_count: 200
-  trace_log_path: "./profile/mobilenetv3_v1_new_2d_tf_xnnpack"
+  trace_log_path: "./profile/mobilenetv3_large100_v1_new_2d_tf_xnnpack"
 }
 # Images on CPU coming into and out of the graph.
-max_queue_size: -1
+# max_queue_size: -1
 input_stream: "input_video"
 output_stream: "output_video"
 
@@ -32,16 +32,16 @@ output_stream: "output_video"
 #   output_stream: "VIDEO_PRESTREAM:input_video_header"
 # }
 
-# node {
-#   calculator: "FlowLimiterCalculator"
-#   input_stream: "input_video"
-#   input_stream: "FINISHED:output_detections"
-#   input_stream_info: {
-#     tag_index: "FINISHED"
-#     back_edge: true
-#   }
-#   output_stream: "throttled_input_video"
-# }
+node {
+  calculator: "FlowLimiterCalculator"
+  input_stream: "input_video"
+  input_stream: "FINISHED:output_detections"
+  input_stream_info: {
+    tag_index: "FINISHED"
+    back_edge: true
+  }
+  output_stream: "throttled_input_video"
+}
 
 # Transforms the input image on CPU to a 320x320 image. To scale the image, by
 # default it uses the STRETCH scale mode that maps the entire input image to the
@@ -50,7 +50,7 @@ output_stream: "output_video"
 # detection model used in this graph is agnostic to that deformation.
 node: {
   calculator: "ImageTransformationCalculator"
-  input_stream: "IMAGE:input_video"
+  input_stream: "IMAGE:throttled_input_video"
   output_stream: "IMAGE:transformed_input_video_cpu"
   node_options: {
     [type.googleapis.com/mediapipe.ImageTransformationCalculatorOptions] {
@@ -88,8 +88,9 @@ node {
   output_stream: "TENSORS:output_tensor"
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
-      # model_path: "mediapipe/models/toy_detection_mobilenetv3_small_2d_v0.tflite"
-      model_path: "mediapipe/models/toy_detection_mobilenetv3_2d_v1_tf.tflite"
+      model_path: "mediapipe/models/toy_detection_mobilenetv3_large100_2d_v1_tf.tflite"
+      # model_path: "mediapipe/models/toy_detection_mobilenetv3_2d_v1_tf.tflite"
+      # model_path: "mediapipe/models/toy_detection_mobilenetv2_small050_2d_v1_nopad.tflite"
       delegate { xnnpack {} }
       # output_tensor_index: 694   #wh 1,48,48,16
       # output_tensor_index: 684   #center_offset 1,48,48,2
@@ -121,9 +122,19 @@ node {
       # output_tensor_index: 262  #h2dmax 1,48,48,1
 
       # MobileNet v3
-      output_tensor_index: 404  #wh2d 1,48,48,4
-      output_tensor_index: 406  #heatmap2d 1,48,48,1
-      output_tensor_index: 407  #h2dmax 1,48,48,1
+      output_tensor_index: 304  #wh2d 1,48,48,4
+      output_tensor_index: 306  #heatmap2d 1,48,48,1
+      output_tensor_index: 307  #h2dmax 1,48,48,1
+
+      # MobileNet v2 small050 with pad
+      # output_tensor_index: 256  #wh2d 1,48,48,4
+      # output_tensor_index: 258  #heatmap2d 1,48,48,1
+      # output_tensor_index: 259  #h2dmax 1,48,48,1
+
+      # MobileNet v2 small050 with out pad
+      # output_tensor_index: 228  #wh2d 1,48,48,4
+      # output_tensor_index: 230  #heatmap2d 1,48,48,1
+      # output_tensor_index: 231  #h2dmax 1,48,48,1
 
     }
   }
@@ -140,6 +151,7 @@ node {
        min_score_thresh: 0.1
        input_image_width: 384
        input_image_height: 384
+       down_ratio: 4
      }
    }
 }
@@ -171,7 +183,7 @@ node {
 # Draws annotations and overlays them on top of the input images.
 node {
   calculator: "AnnotationOverlayCalculator"
-  input_stream: "IMAGE:input_video"
+  input_stream: "IMAGE:throttled_input_video"
   input_stream: "render_data"
   output_stream: "IMAGE:output_video"
 }
