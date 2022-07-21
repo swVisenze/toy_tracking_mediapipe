@@ -28,7 +28,7 @@ const std::string STATUS_LOST = "lost";
 const size_t time_gap_us = 50000; // 50 ms -> 20 fps
 using JSON = nlohmann::json;
 
-std::string MPG_code;
+std::string MPG_code = "";
 int image_width;
 int image_height;
 bool is_graph_running = false;
@@ -82,7 +82,11 @@ JNIEXPORT void JNICALL TOY_TRACKING_OUTPUT_METHOD(nativeDestroy)(
     image_width = 0;
     image_height = 0;
     is_graph_running = false;
-    long obj_id = -1;
+    obj_id = -1;
+    cur_time_us = 1;
+    graph->CloseAllInputStreams();
+    graph->WaitUntilDone();
+    graph->Cancel();
     graph.reset(nullptr);
     poller.reset(nullptr);
 }
@@ -94,12 +98,13 @@ JNIEXPORT void toy_tracking_reset(const char* code) {
         absl::Status status = graph->CloseAllInputStreams();
         if(status.ok()) {
             LOG(INFO) << "CloseAllInputStreams";
-            graph->Cancel();
             graph->WaitUntilDone();
             LOG(INFO) << "graph done";
+            graph->Cancel();
         }
     }
     obj_id = -1;
+    cur_time_us = 1;
     absl::Status status = graph->StartRun({});
     is_graph_running = status.ok();
     LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
