@@ -45,6 +45,7 @@ node {
   output_stream: "TENSORS:image_tensor"
   options: {
      [mediapipe.TfLiteConverterCalculatorOptions.ext] {
+       output_type: NHWC
        zero_center: false
        norms: 58.395
        norms: 57.12
@@ -65,17 +66,12 @@ node {
   output_stream: "TENSORS:output_tensor"
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
-      model_path: "mediapipe/models/toy_detection_efficientnet_hwc.tflite"
-      # model_path: "mediapipe/models/toy_detection_efficientnet_hwc_quan.tflite"
-      log_time: true
-      #delegate { xnnpack {} }
-      output_tensor_index: 694   #wh 1,48,48,16
-      output_tensor_index: 684   #center_offset 1,48,48,2
-      output_tensor_index: 689   #heatmap 1,48,48,1
-      output_tensor_index: 690   #hmax 1,48,48,1
-      output_tensor_index: 705   #wh2d 1,48,48,4
-      output_tensor_index: 699   #heatmap2d 1,48,48,1
-      output_tensor_index: 700   #h2dmax 1,48,48,1
+      model_path: "mediapipe/models/toy_detection_mobilenet.tflite"
+      output_tensor_index: 694   #wh 1,16,48,48
+      output_tensor_index: 684   #center_offset 1,2,48,48
+      output_tensor_index: 689   #heatmap 1,1,48,48
+      output_tensor_index: 705   #wh2d 1,4,48,48
+      output_tensor_index: 700   #h2dmax 1,1,24,24
     }
   }
 }
@@ -88,7 +84,7 @@ node {
      [mediapipe.TfLiteTensorsToToyDetectionCalculatorOptions.ext] {
        num_boxes: 3
        num_landmarks: 8
-       min_score_thresh: 0.2
+       min_score_thresh: 0.1
        input_image_width: 384
        input_image_height: 384
      }

@@ -1,15 +1,14 @@
 # MediaPipe graph that performs object detection with TensorFlow Lite on CPU.
 # Used in the examples in
 # mediapipe/examples/desktop/object_detection:object_detection_cpu.
-
 profiler_config {
   trace_enabled: true
   enable_profiler: true
   trace_log_interval_count: 200
-  trace_log_path: "./profile"
+  trace_log_path: "./profile/mobilenetv3_large100_v1_new_2d_tf_xnnpack"
 }
-
 # Images on CPU coming into and out of the graph.
+# max_queue_size: -1
 input_stream: "input_video"
 output_stream: "output_video"
 
@@ -26,6 +25,13 @@ output_stream: "output_video"
 # ImageTransformationCalculator may get dropped downstream if the subsequent
 # TfLiteConverterCalculator or TfLiteInferenceCalculator is still busy
 # processing previous inputs.
+# node {
+#   calculator: "OpenCvVideoDecoderCalculator"
+#   input_side_packet: "INPUT_FILE_PATH:input_video_path"
+#   output_stream: "VIDEO:input_video"
+#   output_stream: "VIDEO_PRESTREAM:input_video_header"
+# }
+
 node {
   calculator: "FlowLimiterCalculator"
   input_stream: "input_video"
@@ -82,15 +88,53 @@ node {
   output_stream: "TENSORS:output_tensor"
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
-      model_path: "mediapipe/models/toy_detection_efficientnet_hwc.tflite"
+      model_path: "mediapipe/models/toy_detection_mobilenetv3_large100_2d_v1_tf.tflite"
+      # model_path: "mediapipe/models/toy_detection_mobilenetv3_2d_v1_tf.tflite"
+      # model_path: "mediapipe/models/toy_detection_mobilenetv2_small050_2d_v1_nopad.tflite"
       delegate { xnnpack {} }
-      output_tensor_index: 694   #wh 1,48,48,16
-      output_tensor_index: 684   #center_offset 1,48,48,2
-      output_tensor_index: 689   #heatmap 1,48,48,1
-      output_tensor_index: 690   #hmax 1,48,48,1
-      output_tensor_index: 705   #wh2d 1,48,48,4
-      output_tensor_index: 699   #heatmap2d 1,48,48,1
-      output_tensor_index: 700   #h2dmax 1,48,48,1
+      # output_tensor_index: 694   #wh 1,48,48,16
+      # output_tensor_index: 684   #center_offset 1,48,48,2
+      # output_tensor_index: 689   #heatmap 1,48,48,1
+      # output_tensor_index: 690   #hmax 1,48,48,1
+      # EfficientNet b1
+      # output_tensor_index: 667   #wh2d 1,48,48,4
+      # output_tensor_index: 673   #heatmap2d 1,48,48,1
+      # output_tensor_index: 672   #h2dmax 1,48,48,1
+
+      # TinyDSOD
+      # output_tensor_index: 294   #wh2d 1,48,48,4
+      # output_tensor_index: 297   #heatmap2d 1,48,48,1
+      # output_tensor_index: 296   #h2dmax 1,48,48,1
+
+      # MobileNet v3
+      # output_tensor_index: 431  #wh2d 1,48,48,4
+      # output_tensor_index: 433  #heatmap2d 1,48,48,1
+      # output_tensor_index: 434  #h2dmax 1,48,48,1
+
+      # MobileNet v3 - small
+      # output_tensor_index: 396  #wh2d 1,48,48,4
+      # output_tensor_index: 398  #heatmap2d 1,48,48,1
+      # output_tensor_index: 399  #h2dmax 1,48,48,1
+
+      # MobileNet v2 - small
+      # output_tensor_index: 259  #wh2d 1,48,48,4
+      # output_tensor_index: 261  #heatmap2d 1,48,48,1
+      # output_tensor_index: 262  #h2dmax 1,48,48,1
+
+      # MobileNet v3
+      output_tensor_index: 304  #wh2d 1,48,48,4
+      output_tensor_index: 306  #heatmap2d 1,48,48,1
+      output_tensor_index: 307  #h2dmax 1,48,48,1
+
+      # MobileNet v2 small050 with pad
+      # output_tensor_index: 256  #wh2d 1,48,48,4
+      # output_tensor_index: 258  #heatmap2d 1,48,48,1
+      # output_tensor_index: 259  #h2dmax 1,48,48,1
+
+      # MobileNet v2 small050 with out pad
+      # output_tensor_index: 228  #wh2d 1,48,48,4
+      # output_tensor_index: 230  #heatmap2d 1,48,48,1
+      # output_tensor_index: 231  #h2dmax 1,48,48,1
 
     }
   }
@@ -99,16 +143,28 @@ node {
 node {
    calculator: "TfLiteTensorsToToyDetectionCalculator"
    input_stream: "TENSORS:output_tensor"
-   output_stream: "DETECTIONS:output_detections"
+   output_stream: "DETECTIONS:filtered_detections"
    options: {
      [mediapipe.TfLiteTensorsToToyDetectionCalculatorOptions.ext] {
        num_boxes: 3
        num_landmarks: 8
-       min_score_thresh: 0.2
+       min_score_thresh: 0.1
        input_image_width: 384
        input_image_height: 384
+       down_ratio: 4
      }
    }
+}
+
+node {
+  calculator: "DetectionLabelIdToTextCalculator"
+  input_stream: "filtered_detections"
+  output_stream: "output_detections"
+  node_options: {
+    [type.googleapis.com/mediapipe.DetectionLabelIdToTextCalculatorOptions] {
+      label_map_path: "mediapipe/models/object_detection_labelmap.txt"
+    }
+  }
 }
 
 # Converts the detections to drawing primitives for annotation overlay.

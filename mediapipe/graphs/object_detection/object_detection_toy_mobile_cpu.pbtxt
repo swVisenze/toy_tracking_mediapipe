@@ -93,25 +93,15 @@ node {
   output_stream: "TENSORS:output_tensor"
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
-      model_path: "mediapipe/models/toy_detection_efficientnet_hwc.tflite"
-      #delegate {
-      #  gpu {
-      #      api: OPENGL
-      #      use_advanced_gpu_api: true
-      #  }
-      #}
-      # delegate { xnnpack {} }
-      # delegate { nnapi {} }
-      # delegate { tflite {} }
-      output_tensor_index: 694   #wh 1,48,48,16
-      output_tensor_index: 684   #center_offset 1,48,48,2
-      output_tensor_index: 689   #heatmap 1,48,48,1
-      output_tensor_index: 690   #hmax 1,48,48,1
-      output_tensor_index: 705   #wh2d 1,48,48,4
-      output_tensor_index: 699   #heatmap2d 1,48,48,1
-      output_tensor_index: 700   #h2dmax 1,48,48,1
-
-
+      model_path: "mediapipe/models/toy_detection_mobilenetv3_large100_2d_v1_tf.tflite"
+      delegate { xnnpack {} }
+      # MobileNet v3
+      # output_tensor_index: 404  #wh2d 1,48,48,4
+      # output_tensor_index: 406  #heatmap2d 1,48,48,1
+      # output_tensor_index: 407  #h2dmax 1,48,48,1
+      output_tensor_index: 304  #wh2d 1,96,96,4
+      output_tensor_index: 306  #heatmap2d 1,96,96,1
+      output_tensor_index: 307  #h2dmax 1,96,96,1
     }
   }
 }
@@ -119,16 +109,28 @@ node {
 node {
    calculator: "TfLiteTensorsToToyDetectionCalculator"
    input_stream: "TENSORS:output_tensor"
-   output_stream: "DETECTIONS:output_detections"
+   output_stream: "DETECTIONS:filtered_detections"
    options: {
      [mediapipe.TfLiteTensorsToToyDetectionCalculatorOptions.ext] {
        num_boxes: 3
        num_landmarks: 8
-       min_score_thresh: 0.2
+       down_ratio: 4
+       min_score_thresh: 0.1
        input_image_width: 384
        input_image_height: 384
      }
    }
+}
+
+node {
+  calculator: "DetectionLabelIdToTextCalculator"
+  input_stream: "filtered_detections"
+  output_stream: "output_detections"
+  node_options: {
+    [type.googleapis.com/mediapipe.DetectionLabelIdToTextCalculatorOptions] {
+      label_map_path: "mediapipe/models/object_detection_labelmap.txt"
+    }
+  }
 }
 
 # Converts the detections to drawing primitives for annotation overlay.

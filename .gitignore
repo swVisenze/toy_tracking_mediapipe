@@ -1,4 +1,6 @@
-bazel-*
+profile/
+test_video/
+bazl-*
 mediapipe/MediaPipe.xcodeproj
 mediapipe/MediaPipe.tulsiproj/*.tulsiconf-user
 mediapipe/provisioning_profile.mobileprovision
