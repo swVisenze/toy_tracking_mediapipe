@@ -3,6 +3,14 @@
 # mediapipe/examples/android/src/java/com/mediapipe/apps/objectdetectioncpu and
 # mediapipe/examples/ios/objectdetectioncpu.
 
+profiler_config {
+  trace_enabled: true
+  enable_profiler: true
+  trace_log_interval_count: 200
+  trace_log_path: "/sdcard/Download/"
+}
+
+
 # Images on GPU coming into and out of the graph.
 input_stream: "input_video"
 output_stream: "output_video"
@@ -52,8 +60,8 @@ node: {
   output_stream: "IMAGE:transformed_input_video_cpu"
   node_options: {
     [type.googleapis.com/mediapipe.ImageTransformationCalculatorOptions] {
-      output_width: 256
-      output_height: 256
+      output_width: 384
+      output_height: 384
     }
   }
 }
@@ -66,7 +74,6 @@ node {
   output_stream: "TENSORS:image_tensor"
   options: {
      [mediapipe.TfLiteConverterCalculatorOptions.ext] {
-       output_type: NCHW
        zero_center: false
        norms: 58.395
        norms: 57.12
@@ -87,11 +94,15 @@ node {
   output_stream: "TENSORS:output_tensor"
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
-      model_path: "mediapipe/models/toy_detection_mobilenet.tflite"
-      output_tensor_index: 775  #wh 1,16,32,32
-      output_tensor_index: 752  #center_offset 1,2,32,32
-      output_tensor_index: 743  #heatmap 1,1,32,32
-      output_tensor_index: 745  #hmax 1,1,32,32
+      model_path: "mediapipe/models/toy_detection_mobilenetv3_large100_2d_v1_tf.tflite"
+      # delegate { xnnpack {} }
+      # MobileNet v3
+      # output_tensor_index: 404  #wh2d 1,48,48,4
+      # output_tensor_index: 406  #heatmap2d 1,48,48,1
+      # output_tensor_index: 407  #h2dmax 1,48,48,1
+      output_tensor_index: 304  #wh2d 1,96,96,4
+      output_tensor_index: 306  #heatmap2d 1,96,96,1
+      output_tensor_index: 307  #h2dmax 1,96,96,1
     }
   }
 }
@@ -99,14 +110,28 @@ node {
 node {
    calculator: "TfLiteTensorsToToyDetectionCalculator"
    input_stream: "TENSORS:output_tensor"
-   output_stream: "DETECTIONS:output_detections"
+   output_stream: "DETECTIONS:filtered_detections"
    options: {
      [mediapipe.TfLiteTensorsToToyDetectionCalculatorOptions.ext] {
+       num_boxes: 3
        num_landmarks: 8
-       input_image_width: 256
-       input_image_height: 256
+       down_ratio: 4
+       min_score_thresh: 0.1
+       input_image_width: 384
+       input_image_height: 384
      }
    }
+}
+
+node {
+  calculator: "DetectionLabelIdToTextCalculator"
+  input_stream: "filtered_detections"
+  output_stream: "output_detections"
+  node_options: {
+    [type.googleapis.com/mediapipe.DetectionLabelIdToTextCalculatorOptions] {
+      label_map_path: "mediapipe/models/object_detection_labelmap.txt"
+    }
+  }
 }
 
 # Converts the detections to drawing primitives for annotation overlay.
