@@ -169,7 +169,7 @@ JNIEXPORT const char* toy_tracking_tracking(const char* image_buffer, int size, 
         track_box = "";
         debug_message = "NO DETECTION OUTPUT";
     }
-    LOG(INFO) <<"obj_id: "<< obj_id;
+//    LOG(INFO) <<"obj_id: "<< obj_id;
     auto jsonObj = JSON::object();
     jsonObj["status"] = status;
     jsonObj["track_box"] = track_box;
