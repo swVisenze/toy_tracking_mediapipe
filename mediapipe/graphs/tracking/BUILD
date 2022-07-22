@@ -62,6 +62,7 @@ cc_library(
         "//mediapipe/graphs/tracking/subgraphs:renderer_cpu",
         "//mediapipe/gpu:gpu_buffer_to_image_frame_calculator",
         "//mediapipe/gpu:image_frame_to_gpu_buffer_calculator",
+        "//mediapipe/calculators/util:detection_label_id_to_text_calculator",
     ],
 )
 

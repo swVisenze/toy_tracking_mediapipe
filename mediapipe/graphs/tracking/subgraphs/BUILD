@@ -116,6 +116,7 @@ mediapipe_simple_subgraph(
         "//mediapipe/calculators/tflite:tflite_converter_calculator",
         "//mediapipe/calculators/tflite:tflite_inference_calculator",
         "//mediapipe/calculators/tflite:tflite_tensors_to_toy_detection_calculator",
+        "//mediapipe/calculators/util:detection_label_id_to_text_calculator",
     ],
 )
 
