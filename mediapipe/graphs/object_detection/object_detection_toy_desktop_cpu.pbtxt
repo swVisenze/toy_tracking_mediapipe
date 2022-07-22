@@ -5,7 +5,7 @@ profiler_config {
   trace_enabled: true
   enable_profiler: true
   trace_log_interval_count: 200
-  trace_log_path: "./profile/mobilenetv3_large100_v1_new_2d_tf_xnnpack"
+  trace_log_path: "./profile/mobilenetv3_small075_v1_new_2d_tf_xnnpack"
 }
 # Images on CPU coming into and out of the graph.
 # max_queue_size: -1
@@ -88,7 +88,7 @@ node {
   output_stream: "TENSORS:output_tensor"
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
-      model_path: "mediapipe/models/toy_detection_mobilenetv3_large100_2d_v1_tf.tflite"
+      model_path: "mediapipe/models/toy_detection_mobilenetv3_small075_tf.tflite"
       # model_path: "mediapipe/models/toy_detection_mobilenetv3_2d_v1_tf.tflite"
       # model_path: "mediapipe/models/toy_detection_mobilenetv2_small050_2d_v1_nopad.tflite"
       delegate { xnnpack {} }
@@ -122,9 +122,9 @@ node {
       # output_tensor_index: 262  #h2dmax 1,48,48,1
 
       # MobileNet v3
-      output_tensor_index: 304  #wh2d 1,48,48,4
-      output_tensor_index: 306  #heatmap2d 1,48,48,1
-      output_tensor_index: 307  #h2dmax 1,48,48,1
+      # output_tensor_index: 304  #wh2d 1,48,48,4
+      # output_tensor_index: 306  #heatmap2d 1,48,48,1
+      # output_tensor_index: 307  #h2dmax 1,48,48,1
 
       # MobileNet v2 small050 with pad
       # output_tensor_index: 256  #wh2d 1,48,48,4
@@ -135,6 +135,11 @@ node {
       # output_tensor_index: 228  #wh2d 1,48,48,4
       # output_tensor_index: 230  #heatmap2d 1,48,48,1
       # output_tensor_index: 231  #h2dmax 1,48,48,1
+
+      # MobileNet v3 small 075
+      output_tensor_index: 365  #wh2d 1,48,48,4
+      output_tensor_index: 368  #heatmap2d 1,48,48,1
+      output_tensor_index: 367  #h2dmax 1,48,48,1
 
     }
   }
@@ -151,7 +156,7 @@ node {
        min_score_thresh: 0.1
        input_image_width: 384
        input_image_height: 384
-       down_ratio: 4
+       down_ratio: 8
      }
    }
 }
