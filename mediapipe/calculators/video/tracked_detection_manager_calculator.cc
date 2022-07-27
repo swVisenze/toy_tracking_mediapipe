@@ -306,7 +306,7 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       output_boxes->emplace_back(detection.bounding_box());
     }
     if (cc->Outputs().HasTag(kDetectionsTag)) {
-      LOG(INFO) <<"output detections of size: "<<output_detections->size()<<" at: "<< cc->InputTimestamp().Microseconds() / 1000;
+//      LOG(INFO) <<"output detections of size: "<<output_detections->size()<<" at: "<< cc->InputTimestamp().Microseconds() / 1000;
       cc->Outputs()
           .Tag(kDetectionsTag)
           .Add(output_detections.release(), cc->InputTimestamp());

@@ -96,7 +96,7 @@ objc_library(
 ios_framework(
     name = "ToyTrackingFramework",
     hdrs = [
-        "ToyTracking.h"
+        "UnityBridge.h"
     ],
     bundle_id="com.visenze.tracking.demo",
     provisioning_profile = "toy_tracking.mobileprovision",
@@ -117,13 +117,15 @@ ios_framework(
 objc_library(
     name = "ToyTrackingCpuAppLibrary",
     srcs = [
-      "ToyTracking.mm"
+      "ToyTracking.mm",
+      "UnityBridge.mm"
     ],
     hdrs = [
-        "ToyTracking.h"
+        "ToyTracking.h",
+        "UnityBridge.h"
     ],
     data = [
-        "//mediapipe/graphs/object_detection:mobile_toy_cpu_binary_graph",
+        "//mediapipe/graphs/tracking:toy_mobile_cpu_binary_graph",
 #        "//mediapipe/models:toy_detection_mobilenet.tflite",
         "//mediapipe/models:toy_detection_mobilenetv3_large100_2d_v1_tf.tflite",
         "//mediapipe/models:object_detection_labelmap.txt",
@@ -141,7 +143,8 @@ objc_library(
         "//mediapipe:ios_i386": [],
         "//mediapipe:ios_x86_64": [],
         "//conditions:default": [
-            "//mediapipe/graphs/object_detection:mobile_calculators",
+#            "//mediapipe/graphs/object_detection:mobile_calculators",
+            "//mediapipe/graphs/tracking:toy_mobile_calculators"
         ],
     }),
 )

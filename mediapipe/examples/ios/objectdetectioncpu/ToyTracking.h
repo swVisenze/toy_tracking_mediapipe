@@ -8,17 +8,21 @@
 #ifndef ToyTracking_h
 #define ToyTracking_h
 
-//#define CEXPORT __attribute__ ((visibility ("default")))
-
-extern "C" {
-    extern void native_toy_tracking_init(int width, int height);
-    extern void native_toy_tracking_reset(const char* code);
-    extern void native_toy_tracking_destroy();
-    extern const char* native_toy_tracking_tracking(const char* image, int size, int width, int height);
-}
+#import <Foundation/Foundation.h>
 
 
+@interface ToyTracking : NSObject
+- (void)loadGraph:(int) width
+      height: (int) height;
 
+- (void)destroy;
 
+- (void)reset:(const char*) code;
 
+- (NSString*)tracking:(const unsigned char*)image
+        size:(int)size
+        width:(int)width
+        height:(int)height;
+
+@end
 #endif /* ToyTracking_h */

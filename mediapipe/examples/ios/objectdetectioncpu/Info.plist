@@ -7,8 +7,8 @@
 	<key>GraphOutputStream</key>
 	<string>output_video</string>
 	<key>GraphInputStream</key>
-	<string>input_video</string>
+	<string>input_video_cpu</string>
 	<key>GraphName</key>
-	<string>mobile_toy_cpu</string>
+	<string>toy_mobile_cpu</string>
 </dict>
 </plist>
