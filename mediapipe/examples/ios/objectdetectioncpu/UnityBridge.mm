@@ -3,7 +3,6 @@
 #import <Foundation/Foundation.h>
 
 ToyTracking* toyTracking;
-
 void native_toy_tracking_init(int width, int height) {
     if(toyTracking != nil) {
         [toyTracking destroy];
@@ -24,7 +23,7 @@ void native_toy_tracking_destroy() {
 char* native_toy_tracking_tracking(const unsigned char* image, int size, int width, int height) {
 //    return [toyTracking tracking:(image) size:(size) width:(width) height:(height)];
     NSString* resultJsonStr = [toyTracking tracking:(image) size:(size) width:(width) height:(height)];
-    NSLog(@"native_toy_tracking_tracking: %@",resultJsonStr);
+//    NSLog(@"native_toy_tracking_tracking: %@",resultJsonStr);
     char* res = (char*)malloc(strlen([resultJsonStr UTF8String]) + 1);
     strcpy(res, [resultJsonStr UTF8String]);
     return res;

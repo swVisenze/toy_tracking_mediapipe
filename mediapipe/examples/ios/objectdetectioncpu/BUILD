@@ -132,18 +132,20 @@ objc_library(
     ],
     sdk_frameworks = [
         "AVFoundation",
-#        "CoreGraphics",
-#        "CoreMedia",
-#        "UIKit"
+        "CoreGraphics",
+        "CoreMedia",
+        "UIKit"
     ],
     alwayslink = True,
     deps = [
-        "//mediapipe/examples/ios/common:CommonMediaPipeAppLibrary",
+#        "//mediapipe/examples/ios/common:CommonMediaPipeAppLibrary",
+        "//mediapipe/objc:mediapipe_framework_ios",
+        "//mediapipe/objc:mediapipe_input_sources_ios",
+        "//mediapipe/objc:mediapipe_layer_renderer",
     ] + select({
         "//mediapipe:ios_i386": [],
         "//mediapipe:ios_x86_64": [],
         "//conditions:default": [
-#            "//mediapipe/graphs/object_detection:mobile_calculators",
             "//mediapipe/graphs/tracking:toy_mobile_calculators"
         ],
     }),

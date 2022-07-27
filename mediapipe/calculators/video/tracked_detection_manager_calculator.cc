@@ -107,7 +107,7 @@ Detection GetAxisAlignedDetectionFromTrackedDetection(
   } else {
     detection.set_detection_id(tracked_detection.unique_id());
   }
-  LOG(INFO) << "tracked detection previous id: " << tracked_detection.previous_id() << " unique id: " << tracked_detection.unique_id();
+//  LOG(INFO) << "tracked detection previous id: " << tracked_detection.previous_id() << " unique id: " << tracked_detection.unique_id();
 
   // Sort the labels by descending scores.
   std::vector<std::pair<std::string, float>> labels_and_scores;
@@ -229,7 +229,7 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       // update from the tracker.
       auto waiting_for_update_detectoin_ptr =
           waiting_for_update_detections_.find(tracked_box.id());
-      LOG(INFO) << "tracked box id: " << tracked_box.id() << " at: " << cc->InputTimestamp();
+//      LOG(INFO) << "tracked box id: " << tracked_box.id() << " at: " << cc->InputTimestamp();
       if (waiting_for_update_detectoin_ptr !=
           waiting_for_update_detections_.end()) {
         // Add the detection and remove duplicated detections.
@@ -321,9 +321,9 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
 
   if (cc->Inputs().HasTag(kDetectionsTag) &&
       !cc->Inputs().Tag(kDetectionsTag).IsEmpty()) {
-      LOG(INFO) << "input detection: "<< cc->InputTimestamp().Microseconds() / 1000;
       const auto detections =
         cc->Inputs().Tag(kDetectionsTag).Get<std::vector<Detection>>();
+      LOG(INFO) << "input detection: "<< cc->InputTimestamp().Microseconds() / 1000 << " size: "<<detections.size();
       AddDetections(detections, cc);
   }
 

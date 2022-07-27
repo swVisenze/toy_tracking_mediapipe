@@ -42,9 +42,7 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
 - (void)loadGraph:(int) width height: (int) height {
     image_width = width;
     image_height = height;
-    LOG(INFO) <<"ToyTracking, toy_tracking_init: width: " << image_width << " height: "<< image_height;
     NSBundle* bundle = [NSBundle bundleForClass:[self class]];
-//    NSBundle* bundle = [NSBundle bundleWithIdentifier:@"com.visenze.tracking.demo"];
     NSString* graphName = [bundle objectForInfoDictionaryKey:@"GraphName"];
     NSURL* graphURL = [bundle URLForResource:graphName withExtension:@"binarypb"];
     NSError* configLoadError = nil;
@@ -61,18 +59,17 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     } else {
         graph = absl::make_unique<mediapipe::CalculatorGraph>();
         absl::Status status = graph->Initialize(config);
-        LOG(INFO) <<"graph initialized: "<< status.ok();
+//        LOG(INFO) <<"graph initialized: "<< status.ok();
         absl::StatusOr<mediapipe::OutputStreamPoller> result = graph->AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME);
         if(result.ok()) {
             poller = std::make_unique<mediapipe::OutputStreamPoller>(std::move(result.value()));
-            LOG(INFO) <<"add poller";
+//            LOG(INFO) <<"add poller";
         }
-
     }
 }
 
 - (void)destroy {
-    LOG(INFO) <<"ToyTracking: toy_tracking_destroy ";
+//    LOG(INFO) <<"ToyTracking: toy_tracking_destroy ";
     MPG_code = "";
     image_width = 0;
     image_height = 0;
@@ -91,9 +88,9 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     if(is_graph_running) {
         absl::Status status = graph->CloseAllInputStreams();
         if(status.ok()) {
-            LOG(INFO) << "CloseAllInputStreams";
+//            LOG(INFO) << "CloseAllInputStreams";
             graph->WaitUntilDone();
-            LOG(INFO) << "graph done";
+//            LOG(INFO) << "graph done";
             graph->Cancel();
         }
     }
@@ -101,7 +98,7 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     cur_time_us = 1;
     absl::Status status = graph->StartRun({});
     is_graph_running = status.ok();
-    LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
+//    LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
 }
 
 - (NSString*)tracking:(const unsigned char*)image_buffer size:(int) size width:(int)width height:(int)height {
@@ -110,7 +107,7 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
         return @"";
     }
 
-    LOG(INFO) << "width: " << width << " height: "<< height << " size: " << size;
+//    LOG(INFO) << "width: " << width << " height: "<< height << " size: " << size;
     const int expected_buffer_size = width * height * 3;
     if (size != expected_buffer_size) {
         LOG(INFO) << "unmatched size, expected size: " << expected_buffer_size;
@@ -135,7 +132,15 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
         LOG(INFO) << "cannot get output packet";
         return @"";
     }
-//    LOG(INFO) << "output packet: "<<output_packet.DebugString();
+
+//    while(poller->Next(&output_packet) && output_packet.Timestamp().Value() < cur_time_us) {
+//        LOG(INFO) << "pull latest packet, current time: "<<cur_time_us;
+//    }
+//    if(output_packet.IsEmpty()) {
+//        LOG(INFO) << "no output";
+//        return @"";
+//    }
+
     auto& out_detections = output_packet.Get<std::vector<mediapipe::Detection>>();
 
     std::string status;
@@ -170,15 +175,10 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     jsonObj["track_box"] = track_box;
     jsonObj["debug_message"] = debug_message;
     std::string jsonStr = jsonObj.dump();
-    LOG(INFO) <<"json output: "<< jsonStr;
+//    LOG(INFO) <<"json output: "<< jsonStr;
 
     NSString* result = [NSString stringWithUTF8String:jsonStr.c_str()];
     return result;
-    // so strange this can output to unity ...
-//    std::string dump = "" + jsonStr;
-//    const char *output = dump.c_str();
-//    const char *output = MPG_code.c_str();
-//    return output;
 }
 
 
