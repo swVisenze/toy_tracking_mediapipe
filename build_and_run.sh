@@ -49,10 +49,10 @@ export GLOG_logtostderr=1
 
 #### toy tracking
 #bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_tracking:toy_tracking_cpu
-#GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu \
-#  --calculator_graph_config_file=mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt \
-#  --input_video_path=../mediapipe_test_video/test_05_Jul/1_vd217_bg_clear.MOV \
-#  --output_video_path=../mediapipe_test_video/test_05_Jul/0_detection_fps_2_max_3_score_0.5/1_vd217_bg_clear.mp4
+GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu \
+  --calculator_graph_config_file=mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt \
+  --input_video_path=../mediapipe_test_video/test_05_Jul/34_vd080_phone_drop.MOV \
+  --output_video_path=../mediapipe_test_video/test_05_Jul/0_tracking/34_vd080_phone_drop.mp4
 
 #bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/toytrackingcpu:toytrackingcpu
 # test
@@ -94,4 +94,4 @@ export GLOG_logtostderr=1
 #     //mediapipe/java/com/visenze:mediapipe_toy_tracking.aar
 
 
-bazel build --copt=-fembed-bitcode --apple_bitcode=embedded --config=ios_arm64 mediapipe/examples/ios/objectdetectioncpu:ToyTrackingFramework
+#bazel build --copt=-fembed-bitcode --apple_bitcode=embedded --config=ios_arm64 mediapipe/examples/ios/objectdetectioncpu:ToyTrackingFramework

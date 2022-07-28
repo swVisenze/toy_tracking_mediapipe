@@ -27,15 +27,17 @@ const std::string OUTPUT_TRACKED_DETECTION_STREAM_NAME = "tracked_detections";
 const std::string STATUS_INIT ="initializing";
 const std::string STATUS_TRACKING = "tracking";
 const std::string STATUS_LOST = "lost";
-const size_t time_gap_us = 50000; // 50 ms -> 20 fps
+const size_t time_gap_us = 40000; // 40 ms -> 25 fps
 using JSON = nlohmann::json;
 
 std::string MPG_code = "";
 int image_width;
 int image_height;
-bool is_graph_running = false;
+volatile bool is_graph_running = false;
 size_t cur_time_us = 1;
 long obj_id = -1;
+
+mediapipe::CalculatorGraphConfig graph_config;
 std::unique_ptr<mediapipe::CalculatorGraph> graph;
 std::unique_ptr<mediapipe::OutputStreamPoller> poller;
 
@@ -53,18 +55,9 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     }
 
     // Parse the graph config resource into mediapipe::CalculatorGraphConfig proto object.
-    mediapipe::CalculatorGraphConfig config;
-    if(!config.ParseFromArray(data.bytes, data.length)) {
+//    mediapipe::CalculatorGraphConfig config;
+    if(!graph_config.ParseFromArray(data.bytes, data.length)) {
         LOG(INFO) <<"graph config parse failed!!!";
-    } else {
-        graph = absl::make_unique<mediapipe::CalculatorGraph>();
-        absl::Status status = graph->Initialize(config);
-//        LOG(INFO) <<"graph initialized: "<< status.ok();
-        absl::StatusOr<mediapipe::OutputStreamPoller> result = graph->AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME);
-        if(result.ok()) {
-            poller = std::make_unique<mediapipe::OutputStreamPoller>(std::move(result.value()));
-//            LOG(INFO) <<"add poller";
-        }
     }
 }
 
@@ -77,7 +70,7 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     obj_id = -1;
     cur_time_us = 1;
     graph->CloseAllInputStreams();
-    graph->WaitUntilDone();
+//    graph->WaitUntilDone();
     graph->Cancel();
     graph.reset(nullptr);
     poller.reset(nullptr);
@@ -86,19 +79,30 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
 - (void)reset:(const char*) code {
     MPG_code = code;
     if(is_graph_running) {
+        is_graph_running = false;
         absl::Status status = graph->CloseAllInputStreams();
-        if(status.ok()) {
-//            LOG(INFO) << "CloseAllInputStreams";
-            graph->WaitUntilDone();
-//            LOG(INFO) << "graph done";
-            graph->Cancel();
-        }
+        LOG(INFO) << "CloseAllInputStreams";
+//            auto waitDoneStatus = graph->WaitUntilDone();
+//            LOG(INFO) << "wait until done: "<<waitDoneStatus.ok();
+        graph->Cancel();
+        LOG(INFO) << "graph cancelled";
+        poller.reset(nullptr);
     }
     obj_id = -1;
     cur_time_us = 1;
-    absl::Status status = graph->StartRun({});
-    is_graph_running = status.ok();
-//    LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
+    graph.reset(new mediapipe::CalculatorGraph());
+    LOG(INFO) <<"graph reset with new object";
+    absl::Status status = graph->Initialize(graph_config);
+    LOG(INFO) <<"graph initialized: "<< status.ok();
+    absl::StatusOr<mediapipe::OutputStreamPoller> result = graph->AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME);
+    if(result.ok()) {
+        poller = std::make_unique<mediapipe::OutputStreamPoller>(std::move(result.value()));
+//        poller.reset(std::move(result.value()));
+        LOG(INFO) <<"add poller";
+        absl::Status status = graph->StartRun({});
+        is_graph_running = status.ok();
+        LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
+    }
 }
 
 - (NSString*)tracking:(const unsigned char*)image_buffer size:(int) size width:(int)width height:(int)height {
@@ -149,6 +153,11 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     if(out_detections.size()>0) {
         status = STATUS_TRACKING;
         auto detection = out_detections[0];
+        LOG(INFO) << "out detections: "<<out_detections.size();
+        for(int i=0; i< out_detections.size(); i++) {
+            LOG(INFO) << "out detection: "<< i <<" object id: "<< out_detections[i].detection_id();
+        }
+
         auto& relative_bbox = detection.location_data().relative_bounding_box();
         float min_x = relative_bbox.xmin();
         float min_y = relative_bbox.ymin();

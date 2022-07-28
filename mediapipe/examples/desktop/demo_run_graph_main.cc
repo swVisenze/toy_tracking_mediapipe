@@ -18,6 +18,7 @@
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "mediapipe/framework/calculator_framework.h"
+#include "mediapipe/framework/formats/detection.pb.h"
 #include "mediapipe/framework/formats/image_frame.h"
 #include "mediapipe/framework/formats/image_frame_opencv.h"
 #include "mediapipe/framework/port/file_helpers.h"
@@ -29,6 +30,7 @@
 
 constexpr char kInputStream[] = "input_video";
 constexpr char kOutputStream[] = "output_video";
+constexpr char KOutputDetection[] = "tracked_detections";
 constexpr char kWindowName[] = "MediaPipe";
 
 ABSL_FLAG(std::string, calculator_graph_config_file, "",
@@ -79,12 +81,17 @@ absl::Status RunMPPGraph() {
   LOG(INFO) << "Start running the calculator graph.";
   ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller poller,
                    graph.AddOutputStreamPoller(kOutputStream));
+
+  ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller detectionPoller,
+          graph.AddOutputStreamPoller(KOutputDetection));
   MP_RETURN_IF_ERROR(graph.StartRun({}));
 
   LOG(INFO) << "Start grabbing and processing frames.";
   bool grab_frames = true;
   size_t cur_time_us = 1;
-  size_t time_gap_us = 50000; // 50 ms -> 20 fps
+  size_t time_gap_us = 40000; // 40 ms -> 25 fps
+  int obj_id = -1;
+  bool tracker_lost = false;
   while (grab_frames) {
     // Capture opencv camera or video frame.
     cv::Mat camera_frame_raw;
@@ -125,6 +132,19 @@ absl::Status RunMPPGraph() {
     if (!poller.Next(&packet)) break;
     auto& output_frame = packet.Get<mediapipe::ImageFrame>();
 
+    // get detection output packet
+    mediapipe::Packet detectionPacket;
+    if (!detectionPoller.Next(&detectionPacket)) break;
+    auto& out_detections = detectionPacket.Get<std::vector<mediapipe::Detection>>();
+    if(out_detections.size() > 0) {
+      auto detection = out_detections[0];
+      obj_id = detection.detection_id();
+    } else if(obj_id > -1) {
+      LOG(INFO) << "TRACKER LOST !!!!!!!";
+      tracker_lost = true;
+    }
+
+
     // Convert back to opencv for display or saving.
     cv::Mat output_frame_mat = mediapipe::formats::MatView(&output_frame);
     cv::cvtColor(output_frame_mat, output_frame_mat, cv::COLOR_RGB2BGR);
@@ -136,7 +156,11 @@ absl::Status RunMPPGraph() {
                     capture.get(cv::CAP_PROP_FPS), output_frame_mat.size());
         RET_CHECK(writer.isOpened());
       }
-      writer.write(output_frame_mat);
+      if(tracker_lost) {
+        writer.write(camera_frame_raw);
+      } else {
+        writer.write(output_frame_mat);
+      }
     } else {
       cv::imshow(kWindowName, output_frame_mat);
       // Press any key to exit.

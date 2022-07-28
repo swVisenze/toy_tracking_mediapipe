@@ -235,10 +235,11 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
         // Add the detection and remove duplicated detections.
         auto removed_ids = tracked_detection_manager_.AddDetection(
             std::move(waiting_for_update_detectoin_ptr->second));
-        MoveIds(removed_detection_ids.get(), std::move(removed_ids));
         for(const int id: removed_ids) {
           LOG(INFO) <<"AddDetection removed id: " << id;
         }
+        MoveIds(removed_detection_ids.get(), std::move(removed_ids));
+
         waiting_for_update_detections_.erase(waiting_for_update_detectoin_ptr);
       }
       auto removed_ids = tracked_detection_manager_.UpdateDetectionLocation(
@@ -249,7 +250,6 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       }
       MoveIds(removed_detection_ids.get(), std::move(removed_ids));
     }
-
     // TODO: Should be handled automatically in detection manager.
     auto removed_ids = tracked_detection_manager_.RemoveObsoleteDetections(
         GetInputTimestampMs(cc) - kDetectionUpdateTimeOutMS);

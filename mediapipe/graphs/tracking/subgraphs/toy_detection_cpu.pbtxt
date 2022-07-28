@@ -64,17 +64,32 @@ node {
 node {
    calculator: "TfLiteTensorsToToyDetectionCalculator"
    input_stream: "TENSORS:output_tensor"
-   output_stream: "DETECTIONS:filtered_detections"
+   output_stream: "DETECTIONS:detections"
    options: {
      [mediapipe.TfLiteTensorsToToyDetectionCalculatorOptions.ext] {
        num_boxes: 3
        num_landmarks: 8
        down_ratio: 4
-       min_score_thresh: 0.3
+       min_score_thresh: 0.1
        input_image_width: 384
        input_image_height: 384
      }
    }
+}
+
+# Performs non-max suppression to remove excessive detections.
+node {
+  calculator: "NonMaxSuppressionCalculator"
+  input_stream: "detections"
+  output_stream: "filtered_detections"
+  node_options: {
+    [type.googleapis.com/mediapipe.NonMaxSuppressionCalculatorOptions] {
+      min_suppression_threshold: 0.5
+      max_num_detections: 3
+      overlap_type: INTERSECTION_OVER_UNION
+      return_empty_detections: true
+    }
+  }
 }
 
 node {

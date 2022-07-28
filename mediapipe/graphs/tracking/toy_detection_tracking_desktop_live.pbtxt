@@ -12,6 +12,7 @@ profiler_config {
 # Images on CPU coming into and out of the graph.
 input_stream: "input_video"
 output_stream: "output_video"
+output_stream: "tracked_detections"
 
 # Resamples the images by specific frame rate. This calculator is used to
 # control the frequecy of subsequent calculators/subgraphs, e.g. less power
