@@ -42,6 +42,7 @@ std::unique_ptr<mediapipe::CalculatorGraph> graph;
 std::unique_ptr<mediapipe::OutputStreamPoller> poller;
 
 - (void)loadGraph:(int) width height: (int) height {
+//    FLAGS_logtostderr = 0;
     image_width = width;
     image_height = height;
     NSBundle* bundle = [NSBundle bundleForClass:[self class]];
@@ -58,6 +59,7 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
 //    mediapipe::CalculatorGraphConfig config;
     if(!graph_config.ParseFromArray(data.bytes, data.length)) {
         LOG(INFO) <<"graph config parse failed!!!";
+        return;
     }
 }
 
@@ -76,32 +78,35 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     poller.reset(nullptr);
 }
 
-- (void)reset:(const char*) code {
+- (bool)reset:(const char*) code {
     MPG_code = code;
     if(is_graph_running) {
         is_graph_running = false;
         absl::Status status = graph->CloseAllInputStreams();
-        LOG(INFO) << "CloseAllInputStreams";
+//        LOG(INFO) << "CloseAllInputStreams";
 //            auto waitDoneStatus = graph->WaitUntilDone();
 //            LOG(INFO) << "wait until done: "<<waitDoneStatus.ok();
         graph->Cancel();
-        LOG(INFO) << "graph cancelled";
+//        LOG(INFO) << "graph cancelled";
         poller.reset(nullptr);
     }
     obj_id = -1;
     cur_time_us = 1;
     graph.reset(new mediapipe::CalculatorGraph());
-    LOG(INFO) <<"graph reset with new object";
+//    LOG(INFO) <<"graph reset with new object";
     absl::Status status = graph->Initialize(graph_config);
-    LOG(INFO) <<"graph initialized: "<< status.ok();
+//    LOG(INFO) <<"graph initialized: "<< status.ok();
     absl::StatusOr<mediapipe::OutputStreamPoller> result = graph->AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME);
     if(result.ok()) {
         poller = std::make_unique<mediapipe::OutputStreamPoller>(std::move(result.value()));
 //        poller.reset(std::move(result.value()));
-        LOG(INFO) <<"add poller";
+//        LOG(INFO) <<"add poller";
         absl::Status status = graph->StartRun({});
         is_graph_running = status.ok();
-        LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
+//        LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
+        return is_graph_running;
+    } else {
+        return false;
     }
 }
 
@@ -150,13 +155,22 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     std::string status;
     std::string track_box;
     std::string debug_message;
+    int detection_index = 0;
+
     if(out_detections.size()>0) {
         status = STATUS_TRACKING;
-        auto detection = out_detections[0];
-        LOG(INFO) << "out detections: "<<out_detections.size();
-        for(int i=0; i< out_detections.size(); i++) {
-            LOG(INFO) << "out detection: "<< i <<" object id: "<< out_detections[i].detection_id();
+        obj_id = out_detections[0].detection_id();
+        for(int i=1; i < out_detections.size(); i++) {
+            if(out_detections[i].detection_id() < obj_id) {
+                obj_id = out_detections[i].detection_id();
+                detection_index = i;
+            }
         }
+        auto& detection = out_detections[detection_index];
+//        LOG(INFO) << "out detections: "<<out_detections.size();
+//        for(int i=0; i< out_detections.size(); i++) {
+//            LOG(INFO) << "out detection: "<< i <<" object id: "<< out_detections[i].detection_id();
+//        }
 
         auto& relative_bbox = detection.location_data().relative_bounding_box();
         float min_x = relative_bbox.xmin();
@@ -168,7 +182,6 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
 
         track_box = std::to_string(min_x) + "," + std::to_string(min_y) + ";" + std::to_string(max_x) + "," + std::to_string(max_y);
         debug_message = detection.track_id();
-        obj_id = detection.detection_id();
     } else {
         if(obj_id > 0) {
             status = STATUS_LOST;

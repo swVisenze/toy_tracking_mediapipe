@@ -31,6 +31,7 @@
 constexpr char kInputStream[] = "input_video";
 constexpr char kOutputStream[] = "output_video";
 constexpr char KOutputDetection[] = "tracked_detections";
+constexpr char kOutputDetectionVideo[] = "detection_output_video";
 constexpr char kWindowName[] = "MediaPipe";
 
 ABSL_FLAG(std::string, calculator_graph_config_file, "",
@@ -68,6 +69,7 @@ absl::Status RunMPPGraph() {
   RET_CHECK(capture.isOpened());
 
   cv::VideoWriter writer;
+  cv::VideoWriter detectionWriter;
   const bool save_video = !absl::GetFlag(FLAGS_output_video_path).empty();
   if (!save_video) {
     cv::namedWindow(kWindowName, /*flags=WINDOW_AUTOSIZE*/ 1);
@@ -84,6 +86,10 @@ absl::Status RunMPPGraph() {
 
   ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller detectionPoller,
           graph.AddOutputStreamPoller(KOutputDetection));
+
+  ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller detectionImagePoller,
+          graph.AddOutputStreamPoller(kOutputDetectionVideo));
+
   MP_RETURN_IF_ERROR(graph.StartRun({}));
 
   LOG(INFO) << "Start grabbing and processing frames.";
@@ -132,6 +138,10 @@ absl::Status RunMPPGraph() {
     if (!poller.Next(&packet)) break;
     auto& output_frame = packet.Get<mediapipe::ImageFrame>();
 
+    mediapipe::Packet detectionImagePacket;
+    if (!detectionImagePoller.Next(&detectionImagePacket)) break;
+    auto& output_frame_detection = detectionImagePacket.Get<mediapipe::ImageFrame>();
+
     // get detection output packet
     mediapipe::Packet detectionPacket;
     if (!detectionPoller.Next(&detectionPacket)) break;
@@ -148,6 +158,10 @@ absl::Status RunMPPGraph() {
     // Convert back to opencv for display or saving.
     cv::Mat output_frame_mat = mediapipe::formats::MatView(&output_frame);
     cv::cvtColor(output_frame_mat, output_frame_mat, cv::COLOR_RGB2BGR);
+
+    // Convert back to opencv for display or saving.
+    cv::Mat output_detection_frame_mat = mediapipe::formats::MatView(&output_frame_detection);
+    cv::cvtColor(output_detection_frame_mat, output_detection_frame_mat, cv::COLOR_RGB2BGR);
     if (save_video) {
       if (!writer.isOpened()) {
         LOG(INFO) << "Prepare video writer.";
@@ -156,6 +170,14 @@ absl::Status RunMPPGraph() {
                     capture.get(cv::CAP_PROP_FPS), output_frame_mat.size());
         RET_CHECK(writer.isOpened());
       }
+      if(!detectionWriter.isOpened()) {
+        LOG(INFO) << "Prepare video writer.";
+        detectionWriter.open(absl::GetFlag(FLAGS_output_video_path)+"detection.mp4",
+                    mediapipe::fourcc('a', 'v', 'c', '1'),  // .mp4
+                    capture.get(cv::CAP_PROP_FPS), output_frame_mat.size());
+        RET_CHECK(detectionWriter.isOpened());
+      }
+      detectionWriter.write(output_detection_frame_mat);
       if(tracker_lost) {
         writer.write(camera_frame_raw);
       } else {

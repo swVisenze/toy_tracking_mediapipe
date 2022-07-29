@@ -138,8 +138,8 @@ objc_library(
     ],
     alwayslink = True,
     deps = [
-        "//mediapipe/examples/ios/common:CommonMediaPipeAppLibrary",
-#        "//mediapipe/objc:mediapipe_framework_ios",
+#        "//mediapipe/examples/ios/common:CommonMediaPipeAppLibrary",
+        "//mediapipe/objc:mediapipe_framework_ios",
 #        "//mediapipe/objc:mediapipe_input_sources_ios",
 #        "//mediapipe/objc:mediapipe_layer_renderer",
     ] + select({

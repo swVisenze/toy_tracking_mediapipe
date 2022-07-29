@@ -13,6 +13,7 @@ profiler_config {
 input_stream: "input_video"
 output_stream: "output_video"
 output_stream: "tracked_detections"
+output_stream: "detection_output_video"
 
 # Resamples the images by specific frame rate. This calculator is used to
 # control the frequecy of subsequent calculators/subgraphs, e.g. less power
@@ -41,6 +42,14 @@ node {
   input_stream: "VIDEO:input_video"
   input_stream: "DETECTIONS:output_detections"
   output_stream: "DETECTIONS:tracked_detections"
+}
+
+# Subgraph that renders annotations and overlays them on top of input images (see renderer_cpu.pbtxt).
+node {
+  calculator: "RendererSubgraphCpu"
+  input_stream: "IMAGE:input_video"
+  input_stream: "DETECTIONS:output_detections"
+  output_stream: "IMAGE:detection_output_video"
 }
 
 # Subgraph that renders annotations and overlays them on top of input images (see renderer_cpu.pbtxt).

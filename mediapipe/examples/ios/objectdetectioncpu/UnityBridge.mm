@@ -11,8 +11,8 @@ void native_toy_tracking_init(int width, int height) {
     [toyTracking loadGraph:width height:height];
 }
 
-void native_toy_tracking_reset(const char* code) {
-    [toyTracking reset: code];
+bool native_toy_tracking_reset(const char* code) {
+    return [toyTracking reset: code];
 }
 
 void native_toy_tracking_destroy() {
