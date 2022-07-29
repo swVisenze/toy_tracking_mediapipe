@@ -161,7 +161,7 @@ namespace mediapipe {
         CHECK_EQ(wh2d_tensor->dims->size, 4);
         CHECK_EQ(wh2d_tensor->dims->data[0], 1);
         int wh2d_channel_size = wh2d_tensor->dims->data[3];
-        CHECK_EQ(wh2d_channel_size, 4);  // 2*2 = 4
+        // CHECK_EQ(wh2d_channel_size, 4);  // 2*2 = 4
         int wh2d_row_size = wh2d_tensor->dims->data[1];
         CHECK_EQ(wh2d_row_size, row_size);
         int wh2d_col_size = wh2d_tensor->dims->data[2];
