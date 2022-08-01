@@ -42,7 +42,7 @@ std::unique_ptr<mediapipe::CalculatorGraph> graph;
 std::unique_ptr<mediapipe::OutputStreamPoller> poller;
 
 - (void)loadGraph:(int) width height: (int) height {
-//    FLAGS_logtostderr = 0;
+
     image_width = width;
     image_height = height;
     NSBundle* bundle = [NSBundle bundleForClass:[self class]];

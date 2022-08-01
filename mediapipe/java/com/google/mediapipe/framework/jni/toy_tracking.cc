@@ -65,9 +65,6 @@ JNIEXPORT void JNICALL TOY_TRACKING_OUTPUT_METHOD(nativeInit)(
         graph.reset(new mediapipe::CalculatorGraph());
         graph->Initialize(graph_config);
         LOG(INFO) <<"graph initialized";
-//        ASSIGN_OR_RETURN(poller,
-//                graph.AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME));
-//        LOG(INFO) <<"graph AddOutputStreamPoller";
         absl::StatusOr<mediapipe::OutputStreamPoller> result = graph->AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME);
         if(result.ok()) {
             poller = std::make_unique<mediapipe::OutputStreamPoller>(std::move(result.value()));
@@ -85,33 +82,43 @@ JNIEXPORT void JNICALL TOY_TRACKING_OUTPUT_METHOD(nativeDestroy)(
     obj_id = -1;
     cur_time_us = 1;
     graph->CloseAllInputStreams();
-    graph->WaitUntilDone();
+//    graph->WaitUntilDone();
     graph->Cancel();
     graph.reset(nullptr);
     poller.reset(nullptr);
 }
 
 // this is native method NOT JNI method
-JNIEXPORT void toy_tracking_reset(const char* code) {
+JNIEXPORT bool toy_tracking_reset(const char* code) {
     MPG_code = code;
     if(is_graph_running) {
         absl::Status status = graph->CloseAllInputStreams();
-        if(status.ok()) {
-            LOG(INFO) << "CloseAllInputStreams";
-            graph->WaitUntilDone();
-            LOG(INFO) << "graph done";
-            graph->Cancel();
-        }
+        graph->Cancel();
+//        LOG(INFO) << "graph cancelled";
+        poller.reset(nullptr);
     }
     obj_id = -1;
     cur_time_us = 1;
-    absl::Status status = graph->StartRun({});
-    is_graph_running = status.ok();
-    LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
+    graph.reset(new mediapipe::CalculatorGraph());
+//    LOG(INFO) <<"graph reset with new object";
+    absl::Status status = graph->Initialize(graph_config);
+//    LOG(INFO) <<"graph initialized: "<< status.ok();
+    absl::StatusOr<mediapipe::OutputStreamPoller> result = graph->AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME);
+    if(result.ok()) {
+        poller = std::make_unique<mediapipe::OutputStreamPoller>(std::move(result.value()));
+//        poller.reset(std::move(result.value()));
+//        LOG(INFO) <<"add poller";
+        absl::Status status = graph->StartRun({});
+        is_graph_running = status.ok();
+//        LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
+        return is_graph_running;
+    } else {
+        return false;
+    }
 }
 
 // this is native method NOT JNI method
-JNIEXPORT const char* toy_tracking_tracking(const char* image_buffer, int size, int width, int height) {
+JNIEXPORT char* toy_tracking_tracking(const char* image_buffer, int size, int width, int height) {
 //    //buffer is  in RGBA image format
     if(!is_graph_running) {
         LOG(INFO) << "graph not run yet";
@@ -151,9 +158,18 @@ JNIEXPORT const char* toy_tracking_tracking(const char* image_buffer, int size, 
     std::string status;
     std::string track_box;
     std::string debug_message;
+    int detection_index = 0;
+
     if(out_detections.size()>0) {
         status = STATUS_TRACKING;
-        auto detection = out_detections[0];
+        obj_id = out_detections[0].detection_id();
+        for(int i=1; i < out_detections.size(); i++) {
+            if(out_detections[i].detection_id() < obj_id) {
+                obj_id = out_detections[i].detection_id();
+                detection_index = i;
+            }
+        }
+        auto& detection = out_detections[detection_index];
         auto& relative_bbox = detection.location_data().relative_bounding_box();
         float min_x = relative_bbox.xmin();
         float min_y = relative_bbox.ymin();
@@ -183,7 +199,9 @@ JNIEXPORT const char* toy_tracking_tracking(const char* image_buffer, int size, 
 //    LOG(INFO) <<"json output: "<< jsonStr;
     // so strange this can output to unity ...
     std::string dump = "" + jsonStr;
-    const char *output = dump.c_str();
+    char* output = (char*)malloc(dump.length() + 1);
+    strcpy(output, dump.c_str());
+//    const char *output = dump.c_str();
 //    const char *output = MPG_code.c_str();
     return output;
  }
