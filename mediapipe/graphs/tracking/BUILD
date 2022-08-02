@@ -46,7 +46,8 @@ cc_library(
     deps = [
         "//mediapipe/calculators/core:packet_resampler_calculator",
         "//mediapipe/graphs/tracking/subgraphs:toy_detection_cpu",
-        "//mediapipe/graphs/tracking/subgraphs:object_tracking_cpu",
+#        "//mediapipe/graphs/tracking/subgraphs:object_tracking_cpu",
+        "//mediapipe/graphs/tracking/subgraphs:object_tracking_detection_out",
         "//mediapipe/graphs/tracking/subgraphs:renderer_cpu",
     ],
 )

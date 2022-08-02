@@ -59,4 +59,6 @@ message DetectionsToRenderDataCalculatorOptions {
 
   // If true, renders the detection id in the first line before the labels.
   optional bool render_track_id = 9 [default = false];
+
+  optional bool render_label = 10 [default = true];
 }

@@ -264,15 +264,18 @@ void DetectionsToRenderDataCalculator::AddLabels(
   }
 
   if(options.render_track_id()) {
-    const std::string track_id_str = "track id: " + detection.track_id();
-    labels.push_back(track_id_str);
+    if(detection.track_id().length() > 0) {
+      const std::string track_id_str = "track id: " + detection.track_id();
+      labels.push_back(track_id_str);
+    }
   }
-
-  if (options.one_label_per_line()) {
-    labels.insert(labels.end(), label_and_scores.begin(),
-                  label_and_scores.end());
-  } else {
-    labels.push_back(absl::StrJoin(label_and_scores, ""));
+  if (options.render_label()) {
+    if (options.one_label_per_line()) {
+      labels.insert(labels.end(), label_and_scores.begin(),
+                    label_and_scores.end());
+    } else {
+      labels.push_back(absl::StrJoin(label_and_scores, ""));
+    }
   }
   // Add the render annotations for "label(_id),score".
   for (int i = 0; i < labels.size(); ++i) {

@@ -77,6 +77,19 @@ mediapipe_simple_subgraph(
 )
 
 mediapipe_simple_subgraph(
+    name = "object_tracking_detection_out",
+    graph = "object_tracking_detection_out.pbtxt",
+    register_as = "ObjectTrackingDetectionSubgraph",
+    deps = [
+        "//mediapipe/calculators/util:detection_unique_id_calculator",
+        "//mediapipe/calculators/util:detections_to_timed_box_list_calculator",
+        "//mediapipe/calculators/video:tracked_detection_manager_calculator",
+        "//mediapipe/framework/stream_handler:sync_set_input_stream_handler",
+        "//mediapipe/graphs/tracking/subgraphs:box_tracking_cpu",
+    ],
+)
+
+mediapipe_simple_subgraph(
     name = "object_detection_gpu",
     graph = "object_detection_gpu.pbtxt",
     register_as = "ObjectDetectionSubgraphGpu",

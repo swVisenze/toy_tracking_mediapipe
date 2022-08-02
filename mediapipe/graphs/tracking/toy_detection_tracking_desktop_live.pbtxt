@@ -2,18 +2,19 @@
 # Lite on CPU.
 # Used in the examples in
 # mediapipie/examples/desktop/object_tracking/
-profiler_config {
-  trace_enabled: true
-  enable_profiler: true
-  trace_log_interval_count: 200
-  trace_log_path: "./profile/default_model"
-}
+# profiler_config {
+#  trace_enabled: true
+#  enable_profiler: true
+#  trace_log_interval_count: 200
+#  trace_log_path: "./profile/default_model"
+#}
+
+# max_queue_size: 5
 
 # Images on CPU coming into and out of the graph.
 input_stream: "input_video"
 output_stream: "output_video"
 output_stream: "tracked_detections"
-output_stream: "detection_output_video"
 
 # Resamples the images by specific frame rate. This calculator is used to
 # control the frequecy of subsequent calculators/subgraphs, e.g. less power
@@ -36,26 +37,49 @@ node {
   output_stream: "DETECTIONS:output_detections"
 }
 
-# Subgraph that tracks objects (see object_tracking_cpu.pbtxt).
+# Subgraph that tracks objects (see object_tracking_detection_out.pbtxt).
 node {
-  calculator: "ObjectTrackingSubgraphCpu"
+  calculator: "ObjectTrackingDetectionSubgraph"
   input_stream: "VIDEO:input_video"
   input_stream: "DETECTIONS:output_detections"
-  output_stream: "DETECTIONS:tracked_detections"
+  output_stream: "detections_with_id"
+  output_stream: "tracked_detections"
 }
 
-# Subgraph that renders annotations and overlays them on top of input images (see renderer_cpu.pbtxt).
 node {
-  calculator: "RendererSubgraphCpu"
-  input_stream: "IMAGE:input_video"
-  input_stream: "DETECTIONS:output_detections"
-  output_stream: "IMAGE:detection_output_video"
+  calculator: "DetectionsToRenderDataCalculator"
+  input_stream: "DETECTIONS:detections_with_id"
+  output_stream: "RENDER_DATA:detections_render_data"
+  node_options: {
+    [type.googleapis.com/mediapipe.DetectionsToRenderDataCalculatorOptions] {
+      thickness: 4.0
+      color { r: 0 g: 255 b: 0 }
+      render_detection_id: true
+    }
+  }
 }
 
-# Subgraph that renders annotations and overlays them on top of input images (see renderer_cpu.pbtxt).
 node {
-  calculator: "RendererSubgraphCpu"
-  input_stream: "IMAGE:input_video"
+  calculator: "DetectionsToRenderDataCalculator"
   input_stream: "DETECTIONS:tracked_detections"
+  output_stream: "RENDER_DATA:tracked_detection_render_data"
+  node_options: {
+    [type.googleapis.com/mediapipe.DetectionsToRenderDataCalculatorOptions] {
+      thickness: 4.0
+      color { r: 255 g: 0 b: 0 }
+      render_detection_id: true
+      render_track_id: true
+      render_label: false
+    }
+  }
+}
+
+# Draws annotations and overlays them on top of the input images.
+node {
+  calculator: "AnnotationOverlayCalculator"
+  input_stream: "IMAGE:input_video"
+  input_stream: "tracked_detection_render_data"
+  input_stream: "detections_render_data"
   output_stream: "IMAGE:output_video"
 }
+
