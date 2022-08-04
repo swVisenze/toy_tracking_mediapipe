@@ -90,6 +90,16 @@ void TrackedDetection::AddLabel(const std::string& label, float score) {
   }
 }
 
+float TrackedDetection::IntersectionOverUnion(const TrackedDetection& other) {
+  const auto box0 = bounding_box_;
+  const auto box1 = other.bounding_box_;
+  const double box0_area = BoxArea(box0);
+  const double box1_area = BoxArea(box1);
+  const double overlap_area = OverlapArea(box0, box1);
+  return overlap_area/(box0_area + box1_area - overlap_area);
+
+}
+
 bool TrackedDetection::IsSameAs(const TrackedDetection& other,
                                 float max_area_ratio,
                                 float min_overlap_ratio) const {

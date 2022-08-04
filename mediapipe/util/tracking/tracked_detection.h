@@ -60,6 +60,8 @@ class TrackedDetection {
   // Merges labels and score from another TrackedDetection.
   void MergeLabelScore(const TrackedDetection& other);
 
+  float IntersectionOverUnion(const TrackedDetection& other);
+
   int64 initial_timestamp() const { return initial_timestamp_; }
   int64 last_updated_timestamp() const { return last_updated_timestamp_; }
   void set_last_updated_timestamp(int64 timestamp) {
