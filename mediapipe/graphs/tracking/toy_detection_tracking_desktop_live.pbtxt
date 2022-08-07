@@ -9,7 +9,7 @@
 #  trace_log_path: "./profile/default_model"
 #}
 
-# max_queue_size: 5
+# max_queue_size: 1
 
 # Images on CPU coming into and out of the graph.
 input_stream: "input_video"
@@ -46,18 +46,18 @@ node {
   output_stream: "tracked_detections"
 }
 
-# node {
-#  calculator: "DetectionsToRenderDataCalculator"
-#  input_stream: "DETECTIONS:detections_with_id"
-#  output_stream: "RENDER_DATA:detections_render_data"
-#  node_options: {
-#    [type.googleapis.com/mediapipe.DetectionsToRenderDataCalculatorOptions] {
-#      thickness: 4.0
-#      color { r: 0 g: 255 b: 0 }
-#      render_detection_id: true
-#    }
-#  }
-# }
+node {
+  calculator: "DetectionsToRenderDataCalculator"
+  input_stream: "DETECTIONS:detections_with_id"
+  output_stream: "RENDER_DATA:detections_render_data"
+  node_options: {
+    [type.googleapis.com/mediapipe.DetectionsToRenderDataCalculatorOptions] {
+      thickness: 4.0
+      color { r: 0 g: 255 b: 0 }
+      render_detection_id: true
+    }
+  }
+}
 
 node {
   calculator: "DetectionsToRenderDataCalculator"
@@ -69,7 +69,7 @@ node {
       color { r: 255 g: 0 b: 0 }
       render_detection_id: true
       render_track_id: true
-      render_label: false
+      render_label: true
     }
   }
 }
@@ -79,7 +79,7 @@ node {
   calculator: "AnnotationOverlayCalculator"
   input_stream: "IMAGE:input_video"
   input_stream: "tracked_detection_render_data"
-#  input_stream: "detections_render_data"
+  # input_stream: "detections_render_data"
   output_stream: "IMAGE:output_video"
 }
 

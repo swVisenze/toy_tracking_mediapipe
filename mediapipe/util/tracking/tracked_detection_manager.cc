@@ -72,14 +72,18 @@ std::vector<int> TrackedDetectionManager::AddDetection(
           detection->set_previous_id(existing_detection.previous_id());
         }
       }
+      if(existing_detection.initial_timestamp() < detection->initial_timestamp()) {
+        float iou = detection->IntersectionOverUnion(existing_detection);
+        detections_iou_[detection->unique_id()] = iou;
+      }
       ids_to_remove.push_back(existing_detection_ptr.first);
     }
   }
   // Erase old detections.
-  for (auto id : ids_to_remove) {
-    detections_.erase(id);
-//    LOG(INFO) <<"tracked detection manager removed id: " << id;
-  }
+//  for (auto id : ids_to_remove) {
+//    detections_.erase(id);
+////    LOG(INFO) <<"tracked detection manager removed id: " << id;
+//  }
   const int id = detection->unique_id();
 //  LOG(INFO) <<"tracked detection manager set unique id: " << id;
   detections_[id] = std::move(detection);
@@ -107,29 +111,41 @@ std::vector<int> TrackedDetectionManager::UpdateDetectionLocation(
 std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
   std::vector<int> ids_to_remove;
   if(detections_.size() > 1) { // find current tracking id
-    int cur_track_id = -1;
+    float max_iou = 0.f;
     for (auto& existing_detection : detections_) {
       int prev_id = existing_detection.second->previous_id();
-      if(prev_id > -1) {
-        if(cur_track_id < 0 || prev_id < cur_track_id) {
-          cur_track_id = prev_id;
+      if(prev_id < 0) {
+        LOG(INFO) << "remove detection with prev_id < 0: " << existing_detection.second->unique_id();
+        ids_to_remove.push_back(existing_detection.first);
+      } else {
+        int id = existing_detection.first;
+        if(detections_iou_[id] > max_iou) {
+          max_iou = detections_iou_[id];
         }
       }
     }
 
-    for(auto& existing_detection: detections_) {
-      int prev_id = existing_detection.second->previous_id();
-      if (cur_track_id > -1) { // there is already a tracked target toy. remove all others
-        if (prev_id < 0 || prev_id > cur_track_id) {
-          ids_to_remove.push_back(existing_detection.first);
+    if(ids_to_remove.size() == detections_.size()) {
+      LOG(INFO) <<"detection init stage need to keep at least 1";
+      ids_to_remove.pop_back();
+    }
+
+    if(max_iou > 0.f) {
+      LOG(INFO) << "max_iou: " << max_iou;
+      for (auto &iou_item_: detections_iou_) {
+        if (iou_item_.second < max_iou) {
+          ids_to_remove.push_back(iou_item_.first);
         }
-      } else { // keep one toy id. in initialization stage.
-        cur_track_id = 0;
       }
     }
   }
   for (auto idx : ids_to_remove) {
     detections_.erase(idx);
+    auto detection_iou_ptr = detections_iou_.find(idx);
+    if (detection_iou_ptr !=
+            detections_iou_.end()) {
+      detections_iou_.erase(detection_iou_ptr);
+    }
   }
   return ids_to_remove;
 }
@@ -144,6 +160,11 @@ std::vector<int> TrackedDetectionManager::RemoveObsoleteDetections(
   }
   for (auto idx : ids_to_remove) {
     detections_.erase(idx);
+    auto detection_iou_ptr = detections_iou_.find(idx);
+    if (detection_iou_ptr !=
+        detections_iou_.end()) {
+      detections_iou_.erase(detection_iou_ptr);
+    }
   }
   return ids_to_remove;
 }
@@ -157,6 +178,11 @@ std::vector<int> TrackedDetectionManager::RemoveOutOfViewDetections() {
   }
   for (auto idx : ids_to_remove) {
     detections_.erase(idx);
+    auto detection_iou_ptr = detections_iou_.find(idx);
+    if (detection_iou_ptr !=
+        detections_iou_.end()) {
+      detections_iou_.erase(detection_iou_ptr);
+    }
   }
   return ids_to_remove;
 }
@@ -186,18 +212,29 @@ std::vector<int> TrackedDetectionManager::RemoveDuplicatedDetections(int id) {
                                config_.is_same_detection_max_area_ratio(),
                                config_.is_same_detection_min_overlap_ratio())) {
           const TrackedDetection* detection_to_remove = nullptr;
-          if (latest_detection->initial_timestamp() >=
+          if (latest_detection->initial_timestamp() >
               other.initial_timestamp()) {
             // Removes the earlier one.
             ids_to_remove.push_back(other.unique_id());
             detection_to_remove = existing_detection.second.get();
             latest_detection->MergeLabelScore(other);
-          } else {
+          } else if (latest_detection->initial_timestamp() <
+                    other.initial_timestamp()){
             ids_to_remove.push_back(latest_detection->unique_id());
             detection_to_remove = latest_detection;
             existing_detection.second->MergeLabelScore(*latest_detection);
             latest_detection = existing_detection.second.get();
+          } else {
+            continue;
           }
+          // remove the eariler one
+//          if (latest_detection->initial_timestamp() >
+//              other.initial_timestamp()) {
+//            // Removes the earlier one.
+//            ids_to_remove.push_back(other.unique_id());
+//            detection_to_remove = existing_detection.second.get();
+//            latest_detection->MergeLabelScore(other);
+//          }
           if (!previous_detection ||
               previous_detection->initial_timestamp() <
                   detection_to_remove->initial_timestamp()) {
@@ -220,6 +257,11 @@ std::vector<int> TrackedDetectionManager::RemoveDuplicatedDetections(int id) {
 
   for (auto idx : ids_to_remove) {
     detections_.erase(idx);
+    auto detection_iou_ptr = detections_iou_.find(idx);
+    if (detection_iou_ptr !=
+        detections_iou_.end()) {
+      detections_iou_.erase(detection_iou_ptr);
+    }
   }
   return ids_to_remove;
 }
