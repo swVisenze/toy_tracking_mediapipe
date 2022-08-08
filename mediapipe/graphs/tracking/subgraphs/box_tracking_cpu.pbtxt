@@ -110,6 +110,7 @@ node: {
           tracking_degrees: TRACKING_DEGREE_OBJECT_SCALE
           inlier_spring_force: 0.0
           static_motion_temporal_ratio: 3e-2
+          max_track_failures: 25
         }
       }
       visualize_tracking_data: false

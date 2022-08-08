@@ -46,53 +46,46 @@ namespace mediapipe {
 std::vector<int> TrackedDetectionManager::AddDetection(
     std::unique_ptr<TrackedDetection> detection) {
   std::vector<int> ids_to_remove;
-  LOG(INFO) << "add detection id: " << detection->unique_id();
+
   int64 latest_duplicate_timestamp = 0;
   // TODO: All detections should be fastforwarded to the current
   // timestamp before adding the detection manager. E.g. only check they are the
   // same if the timestamp are the same.
   for (auto& existing_detection_ptr : detections_) {
     const auto& existing_detection = *existing_detection_ptr.second;
-    if(existing_detection.initial_timestamp() < detection->initial_timestamp()) {
-      LOG(INFO) << "existing detection id: "<< existing_detection.unique_id();
-      if (detection->IsSameAs(existing_detection,
-                              config_.is_same_detection_max_area_ratio(),
-                              config_.is_same_detection_min_overlap_ratio())) {
-        // Merge previous labels to the new detection. Because new detections
-        // usually have better bounding box than the one from tracking.
-        // TODO: This might cause unstable change of the bounding box.
-        // TODO: Add a filter for the box using new detection as
-        // observation.
-        float iou = detection->IntersectionOverUnion(existing_detection);
-        detections_iou_[detection->unique_id()] = iou;
-
-        detection->MergeLabelScore(existing_detection);
-
+    if (detection->IsSameAs(existing_detection,
+                            config_.is_same_detection_max_area_ratio(),
+                            config_.is_same_detection_min_overlap_ratio())) {
+      // Merge previous labels to the new detection. Because new detections
+      // usually have better bounding box than the one from tracking.
+      // TODO: This might cause unstable change of the bounding box.
+      // TODO: Add a filter for the box using new detection as
+      // observation.
+      detection->MergeLabelScore(existing_detection);
+      // Pick the duplicated detection that has the latest initial timestamp as
+      // the previous detection of the new one.
+      if (existing_detection.initial_timestamp() > latest_duplicate_timestamp) {
+        latest_duplicate_timestamp = existing_detection.initial_timestamp();
         if (existing_detection.previous_id() == -1) {
           detection->set_previous_id(existing_detection.unique_id());
         } else {
           detection->set_previous_id(existing_detection.previous_id());
         }
-        // Pick the duplicated detection that has the latest initial timestamp as
-        // the previous detection of the new one.
-//        if (existing_detection.initial_timestamp() > latest_duplicate_timestamp) {
-//          latest_duplicate_timestamp = existing_detection.initial_timestamp();
-//          if (existing_detection.previous_id() == -1) {
-//            detection->set_previous_id(existing_detection.unique_id());
-//          } else {
-//            detection->set_previous_id(existing_detection.previous_id());
-//          }
-//        }
-//        ids_to_remove.push_back(existing_detection_ptr.first);
       }
+      if(existing_detection.initial_timestamp() < detection->initial_timestamp()) {
+        float iou = detection->IntersectionOverUnion(existing_detection);
+        detections_iou_[detection->unique_id()] = iou;
+      }
+      ids_to_remove.push_back(existing_detection_ptr.first);
     }
   }
   // Erase old detections.
 //  for (auto id : ids_to_remove) {
 //    detections_.erase(id);
-//    detections_iou_.erase(id);
+////    LOG(INFO) <<"tracked detection manager removed id: " << id;
 //  }
   const int id = detection->unique_id();
+//  LOG(INFO) <<"tracked detection manager set unique id: " << id;
   detections_[id] = std::move(detection);
   return ids_to_remove;
 }
@@ -117,7 +110,7 @@ std::vector<int> TrackedDetectionManager::UpdateDetectionLocation(
 
 std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
   std::vector<int> ids_to_remove;
-  if(detections_.size() > 1) { // // there is already a tracked target toy. remove all others
+  if(detections_.size() > 1) { // find current tracking id
     float max_iou = 0.f;
     for (auto& existing_detection : detections_) {
       int prev_id = existing_detection.second->previous_id();
@@ -131,31 +124,29 @@ std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
         }
       }
     }
+
+    if(ids_to_remove.size() == detections_.size()) {
+      LOG(INFO) <<"detection init stage need to keep at least 1";
+      ids_to_remove.pop_back();
+    }
+
     if(max_iou > 0.f) {
       LOG(INFO) << "max_iou: " << max_iou;
-      for(auto& iou_item_: detections_iou_) {
-        if(iou_item_.second < max_iou) {
+      for (auto &iou_item_: detections_iou_) {
+        if (iou_item_.second < max_iou) {
           ids_to_remove.push_back(iou_item_.first);
         }
       }
     }
-
-
-//    for(auto& existing_detection: detections_) {
-//      int prev_id = existing_detection.second->previous_id();
-//      if (cur_track_id > -1) { // there is already a tracked target toy. remove all others
-//        if (prev_id < 0 || prev_id > cur_track_id) {
-//          ids_to_remove.push_back(existing_detection.first);
-//        }
-//      } else { // keep one toy id. in initialization stage.
-//        cur_track_id = 0;
-//      }
-//    }
   }
   for (auto idx : ids_to_remove) {
     detections_.erase(idx);
-    detections_iou_.erase(idx);
   }
+  // remove all computed iou result in current frame
+  for (auto& detection_iou_item : detections_iou_) {
+    detections_iou_.erase(detection_iou_item.first);
+  }
+
   return ids_to_remove;
 }
 
@@ -169,7 +160,11 @@ std::vector<int> TrackedDetectionManager::RemoveObsoleteDetections(
   }
   for (auto idx : ids_to_remove) {
     detections_.erase(idx);
-    detections_iou_.erase(idx);
+    auto detection_iou_ptr = detections_iou_.find(idx);
+    if (detection_iou_ptr !=
+        detections_iou_.end()) {
+      detections_iou_.erase(detection_iou_ptr);
+    }
   }
   return ids_to_remove;
 }
@@ -183,7 +178,11 @@ std::vector<int> TrackedDetectionManager::RemoveOutOfViewDetections() {
   }
   for (auto idx : ids_to_remove) {
     detections_.erase(idx);
-    detections_iou_.erase(idx);
+    auto detection_iou_ptr = detections_iou_.find(idx);
+    if (detection_iou_ptr !=
+        detections_iou_.end()) {
+      detections_iou_.erase(detection_iou_ptr);
+    }
   }
   return ids_to_remove;
 }
@@ -205,59 +204,64 @@ std::vector<int> TrackedDetectionManager::RemoveDuplicatedDetections(int id) {
   for (auto& existing_detection : detections_) {
     auto other = *(existing_detection.second);
     if (detection.unique_id() != other.unique_id()) {
-      // remove the old detection if there is one.
-
-      if(other.initial_timestamp() < detection.initial_timestamp()) {
-//        previous_detection = other;
+      // Only check if they are updated at the same timestamp. Comparing
+      // locations of detections at different timestamp is not correct.
+      if (detection.last_updated_timestamp() ==
+          other.last_updated_timestamp()) {
         if (detection.IsSameAs(other,
                                config_.is_same_detection_max_area_ratio(),
                                config_.is_same_detection_min_overlap_ratio())) {
-          ids_to_remove.push_back(other.unique_id());
-        }
-      }
-      // Only check if they are updated at the same timestamp. Comparing
-      // locations of detections at different timestamp is not correct.
-//      if (detection.last_updated_timestamp() ==
-//          other.last_updated_timestamp()) {
-//        if (detection.IsSameAs(other,
-//                               config_.is_same_detection_max_area_ratio(),
-//                               config_.is_same_detection_min_overlap_ratio())) {
-//          const TrackedDetection* detection_to_remove = nullptr;
-//          if (latest_detection->initial_timestamp() >=
+          const TrackedDetection* detection_to_remove = nullptr;
+          if (latest_detection->initial_timestamp() >
+              other.initial_timestamp()) {
+            // Removes the earlier one.
+            ids_to_remove.push_back(other.unique_id());
+            detection_to_remove = existing_detection.second.get();
+            latest_detection->MergeLabelScore(other);
+          } else if (latest_detection->initial_timestamp() <
+                    other.initial_timestamp()){
+            ids_to_remove.push_back(latest_detection->unique_id());
+            detection_to_remove = latest_detection;
+            existing_detection.second->MergeLabelScore(*latest_detection);
+            latest_detection = existing_detection.second.get();
+          } else {
+            continue;
+          }
+          // remove the eariler one
+//          if (latest_detection->initial_timestamp() >
 //              other.initial_timestamp()) {
 //            // Removes the earlier one.
-//            // ids_to_remove.push_back(other.unique_id());
+//            ids_to_remove.push_back(other.unique_id());
 //            detection_to_remove = existing_detection.second.get();
 //            latest_detection->MergeLabelScore(other);
-//          } else {
-//            // ids_to_remove.push_back(latest_detection->unique_id());
-//            detection_to_remove = latest_detection;
-//            existing_detection.second->MergeLabelScore(*latest_detection);
-//            latest_detection = existing_detection.second.get();
 //          }
-//          if (!previous_detection ||
-//              previous_detection->initial_timestamp() <
-//                  detection_to_remove->initial_timestamp()) {
-//            previous_detection = detection_to_remove;
-//          }
-//        }
-//      }
+          if (!previous_detection ||
+              previous_detection->initial_timestamp() <
+                  detection_to_remove->initial_timestamp()) {
+            previous_detection = detection_to_remove;
+          }
+        }
+      }
     }
   }
 
   // If the latest detection is not the one passed into this function, it might
   // already has its previous detection. In that case, we don't override it.
-//  if (latest_detection->previous_id() == -1 && previous_detection) {
-//    if (previous_detection->previous_id() == -1) {
-//      latest_detection->set_previous_id(previous_detection->unique_id());
-//    } else {
-//      latest_detection->set_previous_id(previous_detection->previous_id());
-//    }
-//  }
+  if (latest_detection->previous_id() == -1 && previous_detection) {
+    if (previous_detection->previous_id() == -1) {
+      latest_detection->set_previous_id(previous_detection->unique_id());
+    } else {
+      latest_detection->set_previous_id(previous_detection->previous_id());
+    }
+  }
 
   for (auto idx : ids_to_remove) {
     detections_.erase(idx);
-    detections_iou_.erase(id);
+    auto detection_iou_ptr = detections_iou_.find(idx);
+    if (detection_iou_ptr !=
+        detections_iou_.end()) {
+      detections_iou_.erase(detection_iou_ptr);
+    }
   }
   return ids_to_remove;
 }

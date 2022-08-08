@@ -53,8 +53,7 @@ class TrackedDetectionManager {
   // detections that are removed.
   std::vector<int> RemoveOutOfViewDetections();
 
-  std::vector<int> RemoveMultipleDetections();
-
+  std::vector<int> RemoveMultipleDetections(); 
 
   int GetNumDetections() const { return detections_.size(); }
 
@@ -83,9 +82,7 @@ class TrackedDetectionManager {
   std::vector<int> RemoveDuplicatedDetections(int id);
 
   absl::node_hash_map<int, std::unique_ptr<TrackedDetection>> detections_;
-
   absl::node_hash_map<int, float> detections_iou_;
-
   mediapipe::TrackedDetectionManagerConfig config_;
 };
 

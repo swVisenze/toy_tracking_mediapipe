@@ -169,9 +169,10 @@ namespace mediapipe {
         const float* wh2d_buffer = wh2d_tensor->data.f;
 
         const TfLiteTensor* heatmap2d_tensor = &input_tensors[1];
+        int heatmap_channel_size = 1;
         CHECK_EQ(heatmap2d_tensor->dims->size, 4);
         CHECK_EQ(heatmap2d_tensor->dims->data[0], 1);
-        CHECK_EQ(heatmap2d_tensor->dims->data[3], 126);
+        CHECK_EQ(heatmap2d_tensor->dims->data[3], heatmap_channel_size);
         int heatmap_row_size = heatmap2d_tensor->dims->data[1];
         CHECK_EQ(heatmap_row_size, row_size);
         int heatmap_col_size = heatmap2d_tensor->dims->data[2];
@@ -181,7 +182,7 @@ namespace mediapipe {
         const TfLiteTensor* h2dmax_tensor = &input_tensors[2];
         CHECK_EQ(h2dmax_tensor->dims->size, 4);
         CHECK_EQ(h2dmax_tensor->dims->data[0], 1);
-        CHECK_EQ(h2dmax_tensor->dims->data[3], 126);
+        CHECK_EQ(h2dmax_tensor->dims->data[3], heatmap_channel_size);
         int hmax_row_size = h2dmax_tensor->dims->data[1];
         CHECK_EQ(hmax_row_size, row_size);
         int hmax_col_size = h2dmax_tensor->dims->data[2];
@@ -283,8 +284,8 @@ namespace mediapipe {
     absl::Status TfLiteTensorsToToyDetectionCalculator::getTopKPeaksFromChannel(const float* hmax_buffer, const float* heatmap_buffer, int channelIdx, int row_size, int col_size,
                                                                                 int channel_size,
                                                                                 std::priority_queue<IndexObj, std::vector<IndexObj>, CompareIndexObj>* priority_queue_output) {
-      channel_size = 126;
-      for (int channelIdx_=0; channelIdx_ < 126; channelIdx_ ++) {
+      channel_size = 1;
+      for (int channelIdx_=0; channelIdx_ < channel_size; channelIdx_ ++) {
         for(int idx=0; idx<row_size; idx++) {
             for(int jdx=0; jdx<col_size; jdx++) {
                 const float hmax_score = getValFromBuffer(hmax_buffer, channelIdx_, idx, jdx, row_size, col_size, channel_size);

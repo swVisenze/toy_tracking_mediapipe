@@ -102,7 +102,9 @@ absl::Status RunMPPGraph() {
   size_t cur_time_us = 1;
   size_t time_gap_us = 40000; // 40 ms -> 25 fps
   int obj_id = -1;
-  bool tracker_lost = false;
+  int lost_frames = 0;
+  int MAX_LOST_FRAMES = 25;
+  bool track_lost = false;
   while (grab_frames) {
     // Capture opencv camera or video frame.
     cv::Mat camera_frame_raw;
@@ -153,6 +155,7 @@ absl::Status RunMPPGraph() {
     auto timestamp = detectionPacket.Timestamp();
     if(out_detections.size() > 0) {
       auto& detection = out_detections[0];
+      lost_frames = 0;
       obj_id = detection.detection_id();
 //      LOG(INFO) << "graph output detection with " << obj_id;
       auto& relative_bbox = detection.location_data().relative_bounding_box();
@@ -171,8 +174,11 @@ absl::Status RunMPPGraph() {
     } else {
       fileWriter << std::to_string(timestamp.Value()) + ",,\n";
       if(obj_id > -1) {
-        LOG(INFO) << "TRACKER LOST !!!!!!!";
-        tracker_lost = true;
+        LOG(INFO) << "FRAME LOST !!!!!!!";
+        lost_frames += 1;
+        if(lost_frames >= MAX_LOST_FRAMES) {
+          track_lost = true;
+        }
       }
     }
 
@@ -207,7 +213,7 @@ absl::Status RunMPPGraph() {
 //        RET_CHECK(detectionWriter.isOpened());
 //      }
 //      detectionWriter.write(output_detection_frame_mat);
-      if(tracker_lost) {
+      if(track_lost) {
         writer.write(camera_frame_raw);
       } else {
         writer.write(output_frame_mat);

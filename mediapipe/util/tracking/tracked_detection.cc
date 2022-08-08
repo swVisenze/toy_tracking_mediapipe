@@ -128,6 +128,16 @@ bool TrackedDetection::IsSameAs(const TrackedDetection& other,
   return false;
 }
 
+float TrackedDetection::IntersectionOverUnion(const TrackedDetection& other) {
+  const auto box0 = bounding_box_;
+  const auto box1 = other.bounding_box_;
+  const double box0_area = BoxArea(box0);
+  const double box1_area = BoxArea(box1);
+  const double overlap_area = OverlapArea(box0, box1);
+  return overlap_area/(box0_area + box1_area - overlap_area);
+}
+
+
 void TrackedDetection::MergeLabelScore(const TrackedDetection& other) {
   for (const auto& label_score : other.label_to_score_map()) {
     const auto label_score_ptr = label_to_score_map_.find(label_score.first);
