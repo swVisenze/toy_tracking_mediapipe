@@ -297,13 +297,13 @@ message TrackStepOptions {
 
   // Maximum number of frames considered to be tracking failures ->
   // If over threshold, box is considered untrackable.
-  optional int32 max_track_failures = 17 [default = 20];
+  optional int32 max_track_failures = 17 [default = 10];
 
   // Domain used for tracking is always larger than the current box.
   // If current motion is not negligible, box is expanded in the direction the
   // motion, otherwise expanded in all directions by the amount specified below
   // (w.r.t. normalized domain).
-  optional float expansion_size = 18 [default = 0.1];
+  optional float expansion_size = 18 [default = 0.05];
 
   // Features are scored based on the magnitude of their irls weights, mapped to
   // [0, 1] using the following range. The range represents roughly 3 - 1.5
