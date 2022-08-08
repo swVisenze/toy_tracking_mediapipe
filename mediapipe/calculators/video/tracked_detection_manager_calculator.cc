@@ -216,6 +216,7 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
 
     // Collect all detections that are removed.
     auto removed_detection_ids = absl::make_unique<std::vector<int>>();
+
     for (auto& waiting_for_update_detectoin_ptr : waiting_for_update_detections_) {
       auto removed_ids = tracked_detection_manager_.AddDetection(
               std::move(waiting_for_update_detectoin_ptr.second));
@@ -233,22 +234,6 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       bounding_box.set_width(tracked_box.right() - tracked_box.left());
       bounding_box.set_rotation(tracked_box.rotation());
 //      LOG(INFO) << "tracked box id: " << tracked_box.id() << " at: " << cc->InputTimestamp();
-      // First check if this box updates a detection that's waiting for
-      // update from the tracker.
-//      auto waiting_for_update_detectoin_ptr =
-//          waiting_for_update_detections_.find(tracked_box.id());
-//      if (waiting_for_update_detectoin_ptr !=
-//          waiting_for_update_detections_.end()) {
-//        // Add the detection and remove duplicated detections.
-//        auto removed_ids = tracked_detection_manager_.AddDetection(
-//            std::move(waiting_for_update_detectoin_ptr->second));
-//        for(const int id: removed_ids) {
-//          LOG(INFO) <<"AddDetection removed id: " << id;
-//        }
-//        MoveIds(removed_detection_ids.get(), std::move(removed_ids));
-//
-//        waiting_for_update_detections_.erase(waiting_for_update_detectoin_ptr);
-//      }
       auto removed_ids = tracked_detection_manager_.UpdateDetectionLocation(
           tracked_box.id(), bounding_box, tracked_box.time_msec());
 
