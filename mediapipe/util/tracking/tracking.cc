@@ -1063,12 +1063,9 @@ bool MotionBox::TrackStep(int from_frame,
         // Cancel at the N + 1 tracking failure.
         for (int f = new_pos - options_.max_track_failures(); f <= new_pos;
              ++f) {
-          if (states_[f].track_status() !=
-              MotionBoxState::BOX_TRACKED_OUT_OF_BOUND) {
             num_track_errors += (fabs(states_[f].motion_disparity()) *
-                                     states_[f].prior_weight() >
+                                 states_[f].prior_weight() >
                                  kFailureDisparity);
-          }
         }
 
         if (num_track_errors >= options_.max_track_failures()) {
@@ -1096,12 +1093,9 @@ bool MotionBox::TrackStep(int from_frame,
         // Cancel at the N + 1 tracking failure.
         for (int f = new_pos; f <= new_pos + options_.max_track_failures();
              ++f) {
-          if (states_[f].track_status() !=
-              MotionBoxState::BOX_TRACKED_OUT_OF_BOUND) {
             num_track_errors += (fabs(states_[f].motion_disparity()) *
-                                     states_[f].prior_weight() >
+                                 states_[f].prior_weight() >
                                  kFailureDisparity);
-          }
         }
 
         if (num_track_errors >= options_.max_track_failures()) {
@@ -2613,7 +2607,7 @@ void MotionBox::TrackStepImpl(int from_frame, const MotionBoxState& curr_pos,
         (next_pos->pos_y() > 1.0f - next_pos->height() * (1.0f - kRatio) &&
          next_pos->dy() > static_motion / 2)) {
       VLOG(1) << "Tracked box went out of bound.";
-      next_pos->set_track_status(MotionBoxState::BOX_UNTRACKED);
+      next_pos->set_track_status(MotionBoxState::BOX_TRACKED_OUT_OF_BOUND);
       return;
     }
   }
