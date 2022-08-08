@@ -232,7 +232,7 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       bounding_box.set_height(tracked_box.bottom() - tracked_box.top());
       bounding_box.set_width(tracked_box.right() - tracked_box.left());
       bounding_box.set_rotation(tracked_box.rotation());
-      LOG(INFO) << "tracked box id: " << tracked_box.id() << " at: " << cc->InputTimestamp();
+//      LOG(INFO) << "tracked box id: " << tracked_box.id() << " at: " << cc->InputTimestamp();
       // First check if this box updates a detection that's waiting for
       // update from the tracker.
 //      auto waiting_for_update_detectoin_ptr =

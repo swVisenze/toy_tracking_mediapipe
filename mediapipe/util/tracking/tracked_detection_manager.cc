@@ -141,12 +141,12 @@ std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
   }
   for (auto idx : ids_to_remove) {
     detections_.erase(idx);
-    auto detection_iou_ptr = detections_iou_.find(idx);
-    if (detection_iou_ptr !=
-            detections_iou_.end()) {
-      detections_iou_.erase(detection_iou_ptr);
-    }
   }
+  // remove all computed iou result in current frame
+  for (auto& detection_iou_item : detections_iou_) {
+    detections_iou_.erase(detection_iou_item.first);
+  }
+
   return ids_to_remove;
 }
 
