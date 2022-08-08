@@ -2292,7 +2292,7 @@ float MotionBox::ComputeMotionDisparity(
 
   // Map number of inliers to score in [0, 1], assuming a lot of inliers
   // indicate lock onto object.
-  const float inlier_score = LinearRamp(num_inliers, 20, 40);
+  const float inlier_score = LinearRamp(num_inliers, 10, 40);
 
   // Decaying motion disparity faster if number of inliers indicate lock onto
   // tracking objects has occurred.
