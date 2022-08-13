@@ -22,6 +22,7 @@
 namespace {
 
 using mediapipe::TrackedDetection;
+using mediapipe::NormalizedRect;
 
 // Checks if a point is out of view.
 // x and y should both be in [0, 1] to be considered in view.
@@ -38,6 +39,13 @@ bool AreCornersOutOfView(const TrackedDetection& object) {
     }
   }
   return true;
+}
+
+float DistanceToCenter(const NormalizedRect& bounding_box) {
+  float x_center = bounding_box.x_center();
+  float y_center = bounding_box.y_center();
+
+  return (x_center - 0.5) * (x_center - 0.5) + (y_center - 0.5) * (y_center - 0.5);
 }
 }  // namespace
 
@@ -108,44 +116,77 @@ std::vector<int> TrackedDetectionManager::UpdateDetectionLocation(
   return RemoveDuplicatedDetections(detection.unique_id());
 }
 
+
 std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
   std::vector<int> ids_to_remove;
-  if(detections_.size() > 1) { // find current tracking id
-    float max_iou = 0.f;
-    for (auto& existing_detection : detections_) {
-      int prev_id = existing_detection.second->previous_id();
-      if(prev_id < 0) {
-        LOG(INFO) << "remove detection with prev_id < 0: " << existing_detection.second->unique_id();
-        ids_to_remove.push_back(existing_detection.first);
-      } else {
-        int id = existing_detection.first;
-        if(detections_iou_[id] > max_iou) {
-          max_iou = detections_iou_[id];
-        }
+
+  float max_iou = 0.f;
+  float min_distance_to_center = 1.0f;
+  int min_distance_detection_id = -1;
+  for (auto& existing_detection : detections_) {
+    int prev_id = existing_detection.second->previous_id();
+    if(prev_id < 0 && detections_.size() != 1) {
+      LOG(INFO) << "remove detection with prev_id < 0: " << existing_detection.second->unique_id();
+      float dist = DistanceToCenter(existing_detection.second->bounding_box());
+      if(dist < min_distance_to_center) {
+        min_distance_to_center = dist;
+        min_distance_detection_id = existing_detection.first;
       }
-    }
-
-    if(ids_to_remove.size() == detections_.size()) {
-      LOG(INFO) <<"detection init stage need to keep at least 1";
-      ids_to_remove.pop_back();
-    }
-
-    if(max_iou > 0.f) {
-      LOG(INFO) << "max_iou: " << max_iou;
-      for (auto &iou_item_: detections_iou_) {
-        if (iou_item_.second < max_iou) {
-          ids_to_remove.push_back(iou_item_.first);
-        }
+      ids_to_remove.push_back(existing_detection.first);
+    } else {
+      int id = existing_detection.first;
+      if(detections_iou_[id] > max_iou) {
+        max_iou = detections_iou_[id];
       }
     }
   }
+
+  LOG(INFO) << "ids_to_remove size: "<<ids_to_remove.size()<<" detections_ size: "<<detections_.size();
+  if(ids_to_remove.size() == detections_.size()) {
+    LOG(INFO) <<"detection init stage need to keep at least 1";
+    if(previous_confirmed_detection_.get() != nullptr) {
+      int index_ = -1;
+      LOG(INFO) << "previous_confirmed_detection id: "<< previous_confirmed_detection_->unique_id();
+      for (auto& existing_detection_ptr : detections_) {
+        if(previous_confirmed_detection_->IsSameAs(*existing_detection_ptr.second,
+                               config_.is_same_detection_max_area_ratio(),
+                               config_.is_same_detection_min_overlap_ratio())) {
+          LOG(INFO) <<"keep the detection consider same as previous successful detection, id: " << existing_detection_ptr.first;
+          index_ = existing_detection_ptr.first;
+          break;
+        }
+      }
+      if(index_ != -1) {
+        std::vector<int>::iterator position = std::find(ids_to_remove.begin(), ids_to_remove.end(), index_);
+        if(position != ids_to_remove.end()) {
+          ids_to_remove.erase(position);
+        }
+      }
+    } else if(min_distance_detection_id != -1) {
+      std::vector<int>::iterator position = std::find(ids_to_remove.begin(), ids_to_remove.end(), min_distance_detection_id);
+      if(position != ids_to_remove.end()) {
+        LOG(INFO) << "keep detection with min distance to center, id:" << min_distance_detection_id;
+        ids_to_remove.erase(position);
+      }
+    }
+//    else {
+//      LOG(INFO) <<"keep the last one";
+//      ids_to_remove.pop_back();
+//    }
+  } else if(max_iou > 0.f) {
+    LOG(INFO) << "max_iou: " << max_iou;
+    for (auto &iou_item_: detections_iou_) {
+      if (iou_item_.second < max_iou) {
+        ids_to_remove.push_back(iou_item_.first);
+      }
+    }
+  }
+
   for (auto idx : ids_to_remove) {
     detections_.erase(idx);
   }
   // remove all computed iou result in current frame
-  for (auto& detection_iou_item : detections_iou_) {
-    detections_iou_.erase(detection_iou_item.first);
-  }
+  detections_iou_.clear();
 
   return ids_to_remove;
 }
@@ -227,14 +268,7 @@ std::vector<int> TrackedDetectionManager::RemoveDuplicatedDetections(int id) {
           } else {
             continue;
           }
-          // remove the eariler one
-//          if (latest_detection->initial_timestamp() >
-//              other.initial_timestamp()) {
-//            // Removes the earlier one.
-//            ids_to_remove.push_back(other.unique_id());
-//            detection_to_remove = existing_detection.second.get();
-//            latest_detection->MergeLabelScore(other);
-//          }
+
           if (!previous_detection ||
               previous_detection->initial_timestamp() <
                   detection_to_remove->initial_timestamp()) {

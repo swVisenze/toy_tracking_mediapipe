@@ -18,7 +18,7 @@
 
 - (void)destroy;
 
-- (bool)reset:(const char*) code;
+- (bool)reset:(int) frames;
 
 - (NSString*)tracking:(const unsigned char*)image
         size:(int)size

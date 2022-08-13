@@ -51,8 +51,8 @@ export GLOG_logtostderr=1
 #bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_tracking:toy_tracking_cpu
 GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu \
   --calculator_graph_config_file=mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt \
-  --input_video_path=../mediapipe_test_video/test_05_Jul/15_vd113_in_screen_non_126_toy.MOV \
-  --output_video_path=../mediapipe_test_video/test_05_Jul/0_remove_nps/15_vd113_in_screen_non_126_toy
+  --input_video_path=../mediapipe_test_video/test_11_aug/42_vd217_brief_occlude.MOV \
+  --output_video_path=../mediapipe_test_video/test_11_aug/0_center/42_vd217_brief_occlude
 
 #bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/toytrackingcpu:toytrackingcpu
 # test

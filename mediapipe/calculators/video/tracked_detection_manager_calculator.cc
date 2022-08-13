@@ -233,7 +233,7 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       bounding_box.set_height(tracked_box.bottom() - tracked_box.top());
       bounding_box.set_width(tracked_box.right() - tracked_box.left());
       bounding_box.set_rotation(tracked_box.rotation());
-//      LOG(INFO) << "tracked box id: " << tracked_box.id() << " at: " << cc->InputTimestamp();
+      LOG(INFO) << "tracked box id: " << tracked_box.id() << " at: " << cc->InputTimestamp();
       auto removed_ids = tracked_detection_manager_.UpdateDetectionLocation(
           tracked_box.id(), bounding_box, tracked_box.time_msec());
 
@@ -287,18 +287,27 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
 
     for (const auto& detection_ptr : all_detections) {
       const auto& detection = *detection_ptr.second;
-      // Only output detections that are synced.
+
+      // Only output detections that are synced. and remove the out of sync detection.
       if (detection.last_updated_timestamp() <
           cc->InputTimestamp().Microseconds() / 1000) {
-        LOG(INFO) << "output detection not sync skip";
+        LOG(INFO) << "output detection not sync skip, id: "<<detection.unique_id();
+        tracked_detection_manager_.RemoveDetectionById(detection.unique_id());
         continue;
       }
       output_detections->emplace_back(
           GetAxisAlignedDetectionFromTrackedDetection(detection));
       output_boxes->emplace_back(detection.bounding_box());
+
+      if(!removed_detection_ids->empty()) {
+        const auto* pre_detection = tracked_detection_manager_.GetPreviousConfirmedDetection();
+        if(pre_detection != nullptr && pre_detection->unique_id() != detection.unique_id()) {
+          tracked_detection_manager_.SetPreviousConfirmedDetection(detection);
+        }
+        LOG(INFO) <<"set previous confirmed detection, id: "<<detection.unique_id();
+      }
     }
     if (cc->Outputs().HasTag(kDetectionsTag)) {
-//      LOG(INFO) <<"output detections of size: "<<output_detections->size()<<" at: "<< cc->InputTimestamp().Microseconds() / 1000;
       cc->Outputs()
           .Tag(kDetectionsTag)
           .Add(output_detections.release(), cc->InputTimestamp());

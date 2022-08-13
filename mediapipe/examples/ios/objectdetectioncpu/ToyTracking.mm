@@ -26,11 +26,12 @@ const std::string OUTPUT_TRACKED_DETECTION_STREAM_NAME = "tracked_detections";
 
 const std::string STATUS_INIT ="initializing";
 const std::string STATUS_TRACKING = "tracking";
+const std::string STATUS_SEARCHING = "searching";
 const std::string STATUS_LOST = "lost";
 const size_t time_gap_us = 40000; // 40 ms -> 25 fps
 using JSON = nlohmann::json;
 
-std::string MPG_code = "";
+int buffer_frames;
 int image_width;
 int image_height;
 volatile bool is_graph_running = false;
@@ -65,7 +66,6 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
 
 - (void)destroy {
 //    LOG(INFO) <<"ToyTracking: toy_tracking_destroy ";
-    MPG_code = "";
     image_width = 0;
     image_height = 0;
     is_graph_running = false;
@@ -78,8 +78,8 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     poller.reset(nullptr);
 }
 
-- (bool)reset:(const char*) code {
-    MPG_code = code;
+- (bool)reset:(int)frames {
+    buffer_frames = frames;
     if(is_graph_running) {
         is_graph_running = false;
         absl::Status status = graph->CloseAllInputStreams();
