@@ -79,7 +79,7 @@ node {
   calculator: "AnnotationOverlayCalculator"
   input_stream: "IMAGE:input_video"
   input_stream: "tracked_detection_render_data"
-  input_stream: "detections_render_data"
+  # input_stream: "detections_render_data"
   output_stream: "IMAGE:output_video"
 }
 

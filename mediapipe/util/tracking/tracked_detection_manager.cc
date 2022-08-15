@@ -51,9 +51,7 @@ float DistanceToCenter(const NormalizedRect& bounding_box) {
 
 namespace mediapipe {
 
-std::vector<int> TrackedDetectionManager::AddDetection(
-    std::unique_ptr<TrackedDetection> detection) {
-  std::vector<int> ids_to_remove;
+void TrackedDetectionManager::AddDetection(TrackedDetection* detection) {
 
   int64 latest_duplicate_timestamp = 0;
   // TODO: All detections should be fastforwarded to the current
@@ -84,18 +82,12 @@ std::vector<int> TrackedDetectionManager::AddDetection(
         float iou = detection->IntersectionOverUnion(existing_detection);
         detections_iou_[detection->unique_id()] = iou;
       }
-      ids_to_remove.push_back(existing_detection_ptr.first);
     }
   }
-  // Erase old detections.
-//  for (auto id : ids_to_remove) {
-//    detections_.erase(id);
-////    LOG(INFO) <<"tracked detection manager removed id: " << id;
-//  }
   const int id = detection->unique_id();
 //  LOG(INFO) <<"tracked detection manager set unique id: " << id;
-  detections_[id] = std::move(detection);
-  return ids_to_remove;
+//  detections_[id] = std::move(detection);
+  detections_[id] = absl::make_unique<TrackedDetection>(*detection);
 }
 
 std::vector<int> TrackedDetectionManager::UpdateDetectionLocation(
@@ -125,7 +117,7 @@ std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
   int min_distance_detection_id = -1;
   for (auto& existing_detection : detections_) {
     int prev_id = existing_detection.second->previous_id();
-    if(prev_id < 0 && detections_.size() != 1) {
+    if(prev_id < 0) {
       LOG(INFO) << "remove detection with prev_id < 0: " << existing_detection.second->unique_id();
       float dist = DistanceToCenter(existing_detection.second->bounding_box());
       if(dist < min_distance_to_center) {
@@ -141,17 +133,20 @@ std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
     }
   }
 
-  LOG(INFO) << "ids_to_remove size: "<<ids_to_remove.size()<<" detections_ size: "<<detections_.size();
+//  LOG(INFO) << "ids_to_remove size: "<<ids_to_remove.size()<<" detections_ size: "<<detections_.size();
   if(ids_to_remove.size() == detections_.size()) {
-    LOG(INFO) <<"detection init stage need to keep at least 1";
+    LOG(INFO) <<"detection init stage need to keep at least 1, detection size: "<<detections_.size();
+
     if(previous_confirmed_detection_.get() != nullptr) {
       int index_ = -1;
       LOG(INFO) << "previous_confirmed_detection id: "<< previous_confirmed_detection_->unique_id();
       for (auto& existing_detection_ptr : detections_) {
-        if(previous_confirmed_detection_->IsSameAs(*existing_detection_ptr.second,
+        auto latest_detection = existing_detection_ptr.second.get();
+        if(previous_confirmed_detection_->IsSameAs(*latest_detection,
                                config_.is_same_detection_max_area_ratio(),
                                config_.is_same_detection_min_overlap_ratio())) {
           LOG(INFO) <<"keep the detection consider same as previous successful detection, id: " << existing_detection_ptr.first;
+          latest_detection->set_previous_id(previous_confirmed_detection_->previous_id());
           index_ = existing_detection_ptr.first;
           break;
         }
@@ -167,6 +162,7 @@ std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
       if(position != ids_to_remove.end()) {
         LOG(INFO) << "keep detection with min distance to center, id:" << min_distance_detection_id;
         ids_to_remove.erase(position);
+        detections_[min_distance_detection_id]->set_previous_id(min_distance_detection_id);
       }
     }
 //    else {

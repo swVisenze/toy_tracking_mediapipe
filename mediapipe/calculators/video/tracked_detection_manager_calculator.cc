@@ -172,6 +172,8 @@ class TrackedDetectionManagerCalculator : public CalculatorBase {
   // added to the detection manager until they got updated from the box tracker.
   absl::node_hash_map<int, std::unique_ptr<TrackedDetection>>
       waiting_for_update_detections_;
+  // maintain a list of previous added detections which are not been updated by tracker.
+  absl::node_hash_map<int, std::unique_ptr<TrackedDetection>> previous_added_detections_;
 };
 REGISTER_CALCULATOR(TrackedDetectionManagerCalculator);
 
@@ -218,11 +220,15 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
     auto removed_detection_ids = absl::make_unique<std::vector<int>>();
 
     for (auto& waiting_for_update_detectoin_ptr : waiting_for_update_detections_) {
-      auto removed_ids = tracked_detection_manager_.AddDetection(
-              std::move(waiting_for_update_detectoin_ptr.second));
+//      tracked_detection_manager_.AddDetection(
+//              std::move(waiting_for_update_detectoin_ptr.second));
+      tracked_detection_manager_.AddDetection(
+              waiting_for_update_detectoin_ptr.second.get());
+
+      previous_added_detections_[waiting_for_update_detectoin_ptr.first] = std::move(waiting_for_update_detectoin_ptr.second);
+//      LOG(INFO) << "added previous_added_detections_ id: "<<waiting_for_update_detectoin_ptr.first;
       waiting_for_update_detections_.erase(waiting_for_update_detectoin_ptr.first);
     }
-
 
     for (const TimedBoxProto& tracked_box : tracked_boxes.box()) {
       NormalizedRect bounding_box;
@@ -233,7 +239,7 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       bounding_box.set_height(tracked_box.bottom() - tracked_box.top());
       bounding_box.set_width(tracked_box.right() - tracked_box.left());
       bounding_box.set_rotation(tracked_box.rotation());
-      LOG(INFO) << "tracked box id: " << tracked_box.id() << " at: " << cc->InputTimestamp();
+//      LOG(INFO) << "tracked box id: " << tracked_box.id() << " at: " << cc->InputTimestamp();
       auto removed_ids = tracked_detection_manager_.UpdateDetectionLocation(
           tracked_box.id(), bounding_box, tracked_box.time_msec());
 
@@ -292,7 +298,11 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       if (detection.last_updated_timestamp() <
           cc->InputTimestamp().Microseconds() / 1000) {
         LOG(INFO) << "output detection not sync skip, id: "<<detection.unique_id();
-        tracked_detection_manager_.RemoveDetectionById(detection.unique_id());
+
+        if(detection.last_updated_timestamp() < cc->InputTimestamp().Microseconds() / 1000 - 500) {
+          LOG(INFO) << "remove detection out sync last update time: "<< detection.last_updated_timestamp() <<" current time: " << cc->InputTimestamp().Microseconds() / 1000 - 500;
+          tracked_detection_manager_.RemoveDetectionById(detection.unique_id());
+        }
         continue;
       }
       output_detections->emplace_back(
@@ -301,13 +311,21 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
 
       if(!removed_detection_ids->empty()) {
         const auto* pre_detection = tracked_detection_manager_.GetPreviousConfirmedDetection();
-        if(pre_detection != nullptr && pre_detection->unique_id() != detection.unique_id()) {
-          tracked_detection_manager_.SetPreviousConfirmedDetection(detection);
+        if(pre_detection == nullptr || pre_detection->unique_id() != detection.unique_id()) {
+          // get the tracked detection instance which is NOT been updated by UpdateDetectionLocation method.
+          // e.g. the original detection result.
+          auto original_detection = *previous_added_detections_[detection.unique_id()];
+          LOG(INFO) <<"set previous confirmed detection, id: "<<original_detection.unique_id();
+          tracked_detection_manager_.SetPreviousConfirmedDetection(original_detection);
+          // clear update detections cache since we have already saved previous confirmed detection above.
+          previous_added_detections_.clear();
         }
-        LOG(INFO) <<"set previous confirmed detection, id: "<<detection.unique_id();
       }
     }
+
+
     if (cc->Outputs().HasTag(kDetectionsTag)) {
+//      LOG(INFO) << "output detection size: "<<output_detections->size();
       cc->Outputs()
           .Tag(kDetectionsTag)
           .Add(output_detections.release(), cc->InputTimestamp());

@@ -34,7 +34,7 @@ class TrackedDetectionManager {
 
   // Adds a new detection at a given timestamp. Returns the IDs of the
   // detections that are removed due to duplication.
-  std::vector<int> AddDetection(std::unique_ptr<TrackedDetection> detection);
+  void AddDetection(TrackedDetection* detection);
 
   // Updates the location of a detection identified by its id.
   // Returns false if the requested id doesn't exist a corresponding
