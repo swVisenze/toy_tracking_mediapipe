@@ -79,7 +79,7 @@ objc_library(
     data = [
         "//mediapipe/graphs/object_detection:mobile_toy_cpu_binary_graph",
 #        "//mediapipe/models:toy_detection_mobilenet.tflite",
-        "//mediapipe/models:toy_detection_mobilenetv3_large100_2d_v1_tf.tflite",
+        "//mediapipe/models:toy_detection_m3l075_2d_v4_dv4_av3.tflite",
         "//mediapipe/models:object_detection_labelmap.txt",
     ],
     deps = [
@@ -126,8 +126,7 @@ objc_library(
     ],
     data = [
         "//mediapipe/graphs/tracking:toy_mobile_cpu_binary_graph",
-#        "//mediapipe/models:toy_detection_mobilenet.tflite",
-        "//mediapipe/models:toy_detection_mobilenetv3_large100_2d_v1_tf.tflite",
+        "//mediapipe/models:toy_detection_m3l075_2d_v4_dv4_av3.tflite",
         "//mediapipe/models:object_detection_labelmap.txt",
     ],
     sdk_frameworks = [

@@ -74,6 +74,13 @@ mediapipe_binary_graph(
     deps = [":toy_mobile_calculators"],
 )
 
+mediapipe_binary_graph(
+    name = "toy_mobile_cpu_render_binary_graph",
+    graph = "toy_detection_tracking_mobile_cpu.pbtxt",
+    output_name = "toy_mobile_cpu_render.binarypb",
+    deps = [":toy_mobile_calculators"],
+)
+
 
 
 

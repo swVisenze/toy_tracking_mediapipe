@@ -31,7 +31,9 @@ const std::string STATUS_LOST = "lost";
 const size_t time_gap_us = 40000; // 40 ms -> 25 fps
 using JSON = nlohmann::json;
 
-int buffer_frames;
+int buffer_frames=25;
+
+int lost_frames = 0;
 int image_width;
 int image_height;
 volatile bool is_graph_running = false;
@@ -71,6 +73,8 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     is_graph_running = false;
     obj_id = -1;
     cur_time_us = 1;
+    lost_frames = 0;
+    buffer_frames = 25;
     graph->CloseAllInputStreams();
 //    graph->WaitUntilDone();
     graph->Cancel();
@@ -92,6 +96,7 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     }
     obj_id = -1;
     cur_time_us = 1;
+    lost_frames = 0;
     graph.reset(new mediapipe::CalculatorGraph());
 //    LOG(INFO) <<"graph reset with new object";
     absl::Status status = graph->Initialize(graph_config);
@@ -159,6 +164,7 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
 
     if(out_detections.size()>0) {
         status = STATUS_TRACKING;
+        lost_frames = 0;
         obj_id = out_detections[0].detection_id();
         for(int i=1; i < out_detections.size(); i++) {
             if(out_detections[i].detection_id() < obj_id) {
@@ -184,7 +190,12 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
         debug_message = detection.track_id();
     } else {
         if(obj_id > 0) {
-            status = STATUS_LOST;
+            lost_frames += 1;
+            if(lost_frames > buffer_frames) {
+                status = STATUS_LOST;
+            } else {
+                status = STATUS_SEARCHING;
+            }
         } else {
             status = STATUS_INIT;
         }

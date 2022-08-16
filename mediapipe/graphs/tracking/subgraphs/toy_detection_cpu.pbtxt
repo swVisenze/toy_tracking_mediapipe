@@ -54,7 +54,7 @@ node {
       # model_path: "mediapipe/models/toy_detection_mobilenetv3_large100_2d_v1_tf.tflite"
       model_path: "mediapipe/models/toy_detection_m3l075_2d_v4_dv4_av3.tflite"
 
-      # log_time: true
+      log_time: true
       delegate { xnnpack {} }
       # output_tensor_index: 304  #wh2d 1,96,96,4
       # output_tensor_index: 306  #heatmap2d 1,96,96,1
