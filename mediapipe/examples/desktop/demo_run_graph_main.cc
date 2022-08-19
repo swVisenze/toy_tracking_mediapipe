@@ -28,9 +28,11 @@
 #include "mediapipe/framework/port/opencv_video_inc.h"
 #include "mediapipe/framework/port/parse_text_proto.h"
 #include "mediapipe/framework/port/status.h"
+#include "mediapipe/framework/tool/sink.h"
 
 constexpr char kInputStream[] = "input_video";
 constexpr char KOutputDetection[] = "tracked_detections";
+constexpr char KOutputDetectionWithId[] = "detections_with_id";
 constexpr char kOutputStream[] = "output_video";
 //constexpr char kOutputDetectionVideo[] = "detection_output_video";
 constexpr char kWindowName[] = "MediaPipe";
@@ -44,6 +46,18 @@ ABSL_FLAG(std::string, output_video_path, "",
           "Full path of where to save result (.mp4 only). "
           "If not provided, show result in a window.");
 
+std::string getBBoxString(mediapipe::Detection detection) {
+  auto& relative_bbox = detection.location_data().relative_bounding_box();
+  float min_x = relative_bbox.xmin();
+  float min_y = relative_bbox.ymin();
+  float max_x = min_x + relative_bbox.width();
+  float max_y = min_y + relative_bbox.height();
+
+  auto result_str = std::to_string(min_x) + " " + std::to_string(min_y) + ";"
+                    + std::to_string(max_x) + " " + std::to_string(max_y);
+  return result_str;
+}
+
 absl::Status RunMPPGraph() {
   std::string calculator_graph_config_contents;
   MP_RETURN_IF_ERROR(mediapipe::file::GetContents(
@@ -54,6 +68,12 @@ absl::Status RunMPPGraph() {
   mediapipe::CalculatorGraphConfig config =
       mediapipe::ParseTextProtoOrDie<mediapipe::CalculatorGraphConfig>(
           calculator_graph_config_contents);
+
+  std::vector<mediapipe::Packet> tracked_detections_packets;
+  mediapipe::tool::AddVectorSink(KOutputDetection, &config, &tracked_detections_packets);
+
+  std::vector<mediapipe::Packet> detections_with_id_packets;
+  mediapipe::tool::AddVectorSink(KOutputDetectionWithId, &config, &detections_with_id_packets);
 
   LOG(INFO) << "Initialize the calculator graph.";
   mediapipe::CalculatorGraph graph;
@@ -70,7 +90,6 @@ absl::Status RunMPPGraph() {
   RET_CHECK(capture.isOpened());
 
   cv::VideoWriter writer;
-  std::ofstream fileWriter;
   const bool save_video = !absl::GetFlag(FLAGS_output_video_path).empty();
   if (!save_video) {
     cv::namedWindow(kWindowName, /*flags=WINDOW_AUTOSIZE*/ 1);
@@ -79,18 +98,14 @@ absl::Status RunMPPGraph() {
     capture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
     capture.set(cv::CAP_PROP_FPS, 30);
 #endif
-  } else {
-    LOG(INFO) << "Prepare csv writer.";
-    fileWriter.open(absl::GetFlag(FLAGS_output_video_path) + ".csv");
-    fileWriter << "timestamp,detection_id,box\n";
   }
 
   LOG(INFO) << "Start running the calculator graph.";
   ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller poller,
                    graph.AddOutputStreamPoller(kOutputStream));
 
-  ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller detectionPoller,
-          graph.AddOutputStreamPoller(KOutputDetection));
+//  ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller detectionPoller,
+//          graph.AddOutputStreamPoller(KOutputDetection));
 
 //  ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller detectionImagePoller,
 //          graph.AddOutputStreamPoller(kOutputDetectionVideo));
@@ -100,7 +115,7 @@ absl::Status RunMPPGraph() {
   LOG(INFO) << "Start grabbing and processing frames.";
   bool grab_frames = true;
   size_t cur_time_us = 1;
-  size_t time_gap_us = 40000; // 40 ms -> 25 fps
+  size_t time_gap_us = 50000; // 50 ms -> 20 fps
   int obj_id = -1;
   int lost_frames = 0;
   int MAX_LOST_FRAMES = 25;
@@ -147,49 +162,6 @@ absl::Status RunMPPGraph() {
     if (!poller.Next(&packet)) break;
     auto& output_frame = packet.Get<mediapipe::ImageFrame>();
 
-    // get detection output packet
-    mediapipe::Packet detectionPacket;
-    if (!detectionPoller.Next(&detectionPacket)) break;
-    auto& out_detections = detectionPacket.Get<std::vector<mediapipe::Detection>>();
-
-    auto timestamp = detectionPacket.Timestamp();
-    if(out_detections.size() > 0) {
-      auto& detection = out_detections[0];
-      lost_frames = 0;
-      obj_id = detection.detection_id();
-//      LOG(INFO) << "graph output detection with " << obj_id;
-      auto& relative_bbox = detection.location_data().relative_bounding_box();
-      float min_x = relative_bbox.xmin();
-      float min_y = relative_bbox.ymin();
-//        LOG(INFO) <<"min_x: "<< min_x << " min_y: "<<min_y;
-      float max_x = min_x + relative_bbox.width();
-      float max_y = min_y + relative_bbox.height();
-//        LOG(INFO) <<"max_x: "<< max_x << " max_y: "<<max_y;
-
-      std::string line = std::to_string(timestamp.Value()) + ',' + std::to_string(obj_id) + ","
-              + std::to_string(min_x) + " " + std::to_string(min_y) + ";"
-              + std::to_string(max_x) + " " + std::to_string(max_y) + "\n";
-
-      fileWriter << line;
-    } else {
-      fileWriter << std::to_string(timestamp.Value()) + ",,\n";
-      if(obj_id > -1) {
-        LOG(INFO) << "FRAME LOST !!!!!!!";
-        lost_frames += 1;
-        if(lost_frames >= MAX_LOST_FRAMES) {
-          track_lost = true;
-        }
-      }
-    }
-
-//    mediapipe::Packet detectionImagePacket;
-//    if (!detectionImagePoller.Next(&detectionImagePacket)) {
-//      LOG(INFO) << "cannot get detection image packet";
-//      break;
-//    }
-//    auto& output_frame_detection = detectionImagePacket.Get<mediapipe::ImageFrame>();
-
-
     // Convert back to opencv for display or saving.
     cv::Mat output_frame_mat = mediapipe::formats::MatView(&output_frame);
     cv::cvtColor(output_frame_mat, output_frame_mat, cv::COLOR_RGB2BGR);
@@ -205,19 +177,12 @@ absl::Status RunMPPGraph() {
                     capture.get(cv::CAP_PROP_FPS), output_frame_mat.size());
         RET_CHECK(writer.isOpened());
       }
-//      if(!detectionWriter.isOpened()) {
-//        LOG(INFO) << "Prepare video writer.";
-//        detectionWriter.open(absl::GetFlag(FLAGS_output_video_path)+"_detection.mp4",
-//                    mediapipe::fourcc('a', 'v', 'c', '1'),  // .mp4
-//                    capture.get(cv::CAP_PROP_FPS), output_detection_frame_mat.size());
-//        RET_CHECK(detectionWriter.isOpened());
+      writer.write(output_frame_mat);
+//      if(track_lost) {
+//        writer.write(camera_frame_raw);
+//      } else {
+//        writer.write(output_frame_mat);
 //      }
-//      detectionWriter.write(output_detection_frame_mat);
-      if(track_lost) {
-        writer.write(camera_frame_raw);
-      } else {
-        writer.write(output_frame_mat);
-      }
     } else {
       cv::imshow(kWindowName, output_frame_mat);
       // Press any key to exit.
@@ -228,10 +193,62 @@ absl::Status RunMPPGraph() {
 
   LOG(INFO) << "Shutting down.";
   if (writer.isOpened()) writer.release();
-  if(fileWriter.is_open()) fileWriter.close();
+
   MP_RETURN_IF_ERROR(graph.CloseInputStream(kInputStream));
-  return graph.WaitUntilDone();
+  auto result = graph.WaitUntilDone();
+
+  LOG(INFO) << "Prepare csv writer.";
+  LOG(INFO) << "detections_with_id_packets size: "<<detections_with_id_packets.size();
+  std::ofstream fileWriter;
+  fileWriter.open(absl::GetFlag(FLAGS_output_video_path) + ".csv");
+  fileWriter << "frame,detection_id,track_box,detection_box\n";
+  int cur_detection_index = 0;
+  for(int i=0; i<tracked_detections_packets.size(); i++) {
+    auto& detection_packet = tracked_detections_packets[i];
+    auto& out_detections = detection_packet.Get<std::vector<mediapipe::Detection>>();
+    auto timestamp = detection_packet.Timestamp();
+    std::string origin_detection_str = "";
+
+    if(cur_detection_index < detections_with_id_packets.size()) {
+      auto& origin_detection_packet = detections_with_id_packets[cur_detection_index];
+      auto t1 = origin_detection_packet.Timestamp();
+      if(t1 <= timestamp) {
+        cur_detection_index += 1;
+        auto& origin_detections = origin_detection_packet.Get<std::vector<mediapipe::Detection>>();
+        if(origin_detections.size() > 0) {
+          origin_detection_str = getBBoxString(origin_detections[0]);
+//          LOG(INFO) <<"timestamp: " << t1 <<" box: "<< origin_detection_str;
+        }
+      }
+    }
+
+
+    if(out_detections.size() > 0) {
+      auto& detection = out_detections[0];
+      lost_frames = 0;
+      obj_id = detection.detection_id();
+      auto detection_str = getBBoxString(detection);
+
+      std::string line = std::to_string((timestamp.Value()/time_gap_us)) + ',' + std::to_string(obj_id) + ","
+              + detection_str + "," + origin_detection_str + "\n";
+
+      fileWriter << line;
+    } else {
+      fileWriter << std::to_string((timestamp.Value()/time_gap_us)) + ",,," + origin_detection_str + "\n";
+      if(obj_id > -1) {
+        LOG(INFO) << "FRAME LOST !!!!!!!";
+        lost_frames += 1;
+        if(lost_frames >= MAX_LOST_FRAMES) {
+          track_lost = true;
+        }
+      }
+    }
+  }
+
+  if(fileWriter.is_open()) fileWriter.close();
+  return result;
 }
+
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
