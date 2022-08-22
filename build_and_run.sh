@@ -13,7 +13,7 @@ export GLOG_logtostderr=1
 bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_detection:object_detection_cpu
 GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_detection/object_detection_cpu \
  --calculator_graph_config_file=mediapipe/graphs/object_detection/object_detection_toy_desktop_cpu.pbtxt \
- --input_video_path=test_video/2_vd217_bg_toys.MOV --output_video_path=test_video/m3l075_v3_dv4_av3_2d_xnnpack.mp4
+ --input_video_path=test_video/2_vd217_bg_toys.MOV --output_video_path=test_video/mobileone_v1_dv4_av3_2d_xnnpack.mp4
 
 # #bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_detection:object_detection_image
 # GLOG_logptostderr=1 bazel-bin/mediapipe/examples/desktop/object_detection/object_detection_image \
