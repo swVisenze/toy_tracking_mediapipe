@@ -15,6 +15,7 @@
 input_stream: "input_video"
 output_stream: "output_video"
 output_stream: "tracked_detections"
+output_stream: "detections_with_id"
 
 # Resamples the images by specific frame rate. This calculator is used to
 # control the frequecy of subsequent calculators/subgraphs, e.g. less power
@@ -46,18 +47,19 @@ node {
   output_stream: "tracked_detections"
 }
 
-node {
-  calculator: "DetectionsToRenderDataCalculator"
-  input_stream: "DETECTIONS:detections_with_id"
-  output_stream: "RENDER_DATA:detections_render_data"
-  node_options: {
-    [type.googleapis.com/mediapipe.DetectionsToRenderDataCalculatorOptions] {
-      thickness: 4.0
-      color { r: 0 g: 255 b: 0 }
-      render_detection_id: true
-    }
-  }
-}
+# node {
+#  calculator: "DetectionsToRenderDataCalculator"
+#  input_stream: "DETECTIONS:detections_with_id"
+#  output_stream: "RENDER_DATA:detections_render_data"
+#  node_options: {
+#    [type.googleapis.com/mediapipe.DetectionsToRenderDataCalculatorOptions] {
+#      thickness: 4.0
+#      color { r: 0 g: 255 b: 0 }
+#      render_detection_id: true
+#    }
+#  }
+# }
+
 
 node {
   calculator: "DetectionsToRenderDataCalculator"

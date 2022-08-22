@@ -68,11 +68,3 @@ GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_tracking/toy_trac
 
 #### toy tracking
 #bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_tracking:toy_tracking_cpu
-#bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/toytrackingcpu:toytrackingcpu
-# test
-#bazel test -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/calculators/tflite:tflite_converter_calculator_test
-
-## see log
-# adb logcat -s native | grep graph
-# adb shell "export GLOG_logtostderr=1"
-## build toy tracking lib
