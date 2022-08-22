@@ -262,6 +262,12 @@ void DetectionsToRenderDataCalculator::AddLabels(
         absl::StrCat("Id: ", detection.detection_id());
     labels.push_back(detection_id_str);
   }
+
+  if(options.render_track_id()) {
+    const std::string track_id_str = "track id: " + detection.track_id();
+    labels.push_back(track_id_str);
+  }
+
   if (options.one_label_per_line()) {
     labels.insert(labels.end(), label_and_scores.begin(),
                   label_and_scores.end());

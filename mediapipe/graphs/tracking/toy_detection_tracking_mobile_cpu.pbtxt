@@ -1,6 +1,14 @@
+profiler_config {
+  trace_enabled: true
+  enable_profiler: true
+  trace_log_interval_count: 200
+  trace_log_path: "/sdcard/Download/"
+}
+
 # Images on GPU coming into and out of the graph.
 input_stream: "input_video"
 output_stream: "output_video"
+output_stream: "tracked_detections"
 
 # Transfers the input image from GPU to CPU memory for the purpose of
 # demonstrating a CPU-based pipeline. Note that the input image on GPU has the
@@ -22,7 +30,7 @@ node {
   output_stream: "DATA:throttled_input_video"
   node_options: {
     [type.googleapis.com/mediapipe.PacketResamplerCalculatorOptions] {
-      frame_rate: 0.5
+      frame_rate: 2
     }
   }
 }

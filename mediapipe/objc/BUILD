@@ -59,6 +59,7 @@ MEDIAPIPE_IOS_HDRS = [
     "MPPGraph.h",
     "MPPTimestampConverter.h",
     "NSError+util_status.h",
+    "json.hpp"
 ]
 
 objc_library(

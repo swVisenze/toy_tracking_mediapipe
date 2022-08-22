@@ -80,12 +80,16 @@ class Graph {
   //   Loop:
   //     AddPacketToInputStream
   //   CloseInputStream
-  //   WaitUtilDone
+  //   WaitUntilDone
   // TODO: We need to have a synchronized wait for each step, i.e.,
   // wait until nothing is running and nothing can be scheduled.
   //
+  // absl::StatusOr<OutputStreamPoller>
+  absl::Status AddOutputPoller(std::string output_stream_name);
   // Starts running the graph.
   absl::Status StartRunningGraph(JNIEnv* env);
+  // no java version.
+  absl::Status StartRunningGraph();
   // Closes one input stream.
   absl::Status CloseInputStream(std::string stream_name);
   // Closes all the graph input streams.
@@ -94,8 +98,12 @@ class Graph {
   absl::Status CloseAllPacketSources();
   // Waits util graph is done.
   absl::Status WaitUntilDone(JNIEnv* env);
+  // no java version
+  absl::Status WaitUntilDone();
   // Waits util graph is idle.
   absl::Status WaitUntilIdle(JNIEnv* env);
+  // no java version
+  absl::Status WaitUntilIdle();
   // Adds a packet to an input stream.
   absl::Status AddPacketToInputStream(const std::string& stream_name,
                                       const Packet& packet);
@@ -236,6 +244,8 @@ class Graph {
   // Note: header has to be set for the calculators that require it during
   // Open().
   std::map<std::string, Packet> stream_headers_;
+
+  std::map<std::string, OutputStreamPoller> output_pollers_;
 
   std::unique_ptr<CalculatorGraph> running_graph_;
   CalculatorGraph::GraphInputStreamAddMode graph_input_stream_add_mode_ =

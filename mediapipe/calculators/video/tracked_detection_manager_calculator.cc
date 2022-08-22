@@ -69,6 +69,7 @@ std::unique_ptr<TrackedDetection> GetTrackedDetectionFromDetection(
   tracked_detection->set_bounding_box(bounding_box);
 
   for (int i = 0; i < detection.label_size(); ++i) {
+//    const auto label = detection.label(i) + "_" + std::to_string(detection.detection_id());
     tracked_detection->AddLabel(detection.label(i), detection.score(i));
   }
   return tracked_detection;
@@ -106,6 +107,7 @@ Detection GetAxisAlignedDetectionFromTrackedDetection(
   } else {
     detection.set_detection_id(tracked_detection.unique_id());
   }
+//  LOG(INFO) << "tracked detection previous id: " << tracked_detection.previous_id() << " unique id: " << tracked_detection.unique_id();
 
   // Sort the labels by descending scores.
   std::vector<std::pair<std::string, float>> labels_and_scores;
@@ -115,8 +117,12 @@ Detection GetAxisAlignedDetectionFromTrackedDetection(
   std::sort(labels_and_scores.begin(), labels_and_scores.end(),
             [](const auto& a, const auto& b) { return a.second > b.second; });
   for (const auto& label_and_score : labels_and_scores) {
+//    const auto output_label = label_and_score.first + "_prev_id_" + std::to_string(tracked_detection.previous_id());
+//    LOG(INFO) << "output_label: " << output_label;
+    const auto track_id_out = std::to_string(tracked_detection.unique_id()) + "_prev_id_" + std::to_string(tracked_detection.previous_id());
     detection.add_label(label_and_score.first);
     detection.add_score(label_and_score.second);
+    detection.set_track_id(track_id_out);
   }
   return detection;
 }
@@ -223,26 +229,46 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       // update from the tracker.
       auto waiting_for_update_detectoin_ptr =
           waiting_for_update_detections_.find(tracked_box.id());
+//      LOG(INFO) << "tracked box id: " << tracked_box.id() << " at: " << cc->InputTimestamp();
       if (waiting_for_update_detectoin_ptr !=
           waiting_for_update_detections_.end()) {
         // Add the detection and remove duplicated detections.
         auto removed_ids = tracked_detection_manager_.AddDetection(
             std::move(waiting_for_update_detectoin_ptr->second));
+        for(const int id: removed_ids) {
+          LOG(INFO) <<"AddDetection removed id: " << id;
+        }
         MoveIds(removed_detection_ids.get(), std::move(removed_ids));
 
         waiting_for_update_detections_.erase(waiting_for_update_detectoin_ptr);
       }
       auto removed_ids = tracked_detection_manager_.UpdateDetectionLocation(
           tracked_box.id(), bounding_box, tracked_box.time_msec());
+
+      for(const int id: removed_ids) {
+        LOG(INFO) <<"UpdateDetectionLocation removed id: " << id;
+      }
       MoveIds(removed_detection_ids.get(), std::move(removed_ids));
     }
     // TODO: Should be handled automatically in detection manager.
     auto removed_ids = tracked_detection_manager_.RemoveObsoleteDetections(
         GetInputTimestampMs(cc) - kDetectionUpdateTimeOutMS);
+    for(const int id: removed_ids) {
+      LOG(INFO) <<"RemoveObsoleteDetections removed id: " << id;
+    }
     MoveIds(removed_detection_ids.get(), std::move(removed_ids));
 
     // TODO: Should be handled automatically in detection manager.
     removed_ids = tracked_detection_manager_.RemoveOutOfViewDetections();
+    for(const int id: removed_ids) {
+      LOG(INFO) <<"RemoveOutOfViewDetections removed id: " << id;
+    }
+    MoveIds(removed_detection_ids.get(), std::move(removed_ids));
+
+    removed_ids = tracked_detection_manager_.RemoveMultipleDetections();
+    for(const int id: removed_ids) {
+      LOG(INFO) <<"RemoveMultipleDetections removed id: " << id;
+    }
     MoveIds(removed_detection_ids.get(), std::move(removed_ids));
 
     if (!removed_detection_ids->empty() &&
@@ -252,11 +278,14 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
         // The timestamp is incremented (by 1 us) because currently the box
         // tracker calculator only accepts one cancel object ID for any given
         // timestamp.
+        LOG(INFO) << "box_id (cancel id): "<<box_id <<" at: "<<timestamp.Microseconds() / 1000;
         cc->Outputs()
             .Tag(kCancelObjectIdTag)
             .AddPacket(mediapipe::MakePacket<int>(box_id).At(timestamp++));
       }
     }
+
+//    LOG(INFO) << "current timestamp: "<<GetInputTimestampMs(cc) << " removed_ids size: "<< removed_ids.size();
 
     // Output detections and corresponding bounding boxes.
     const auto& all_detections =
@@ -269,6 +298,7 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       // Only output detections that are synced.
       if (detection.last_updated_timestamp() <
           cc->InputTimestamp().Microseconds() / 1000) {
+        LOG(INFO) << "output detection not sync skip";
         continue;
       }
       output_detections->emplace_back(
@@ -276,6 +306,7 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       output_boxes->emplace_back(detection.bounding_box());
     }
     if (cc->Outputs().HasTag(kDetectionsTag)) {
+//      LOG(INFO) <<"output detections of size: "<<output_detections->size()<<" at: "<< cc->InputTimestamp().Microseconds() / 1000;
       cc->Outputs()
           .Tag(kDetectionsTag)
           .Add(output_detections.release(), cc->InputTimestamp());
@@ -290,9 +321,10 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
 
   if (cc->Inputs().HasTag(kDetectionsTag) &&
       !cc->Inputs().Tag(kDetectionsTag).IsEmpty()) {
-    const auto detections =
+      const auto detections =
         cc->Inputs().Tag(kDetectionsTag).Get<std::vector<Detection>>();
-    AddDetections(detections, cc);
+      LOG(INFO) << "input detection: "<< cc->InputTimestamp().Microseconds() / 1000 << " size: "<<detections.size();
+      AddDetections(detections, cc);
   }
 
   if (cc->Inputs().HasTag(kDetectionListTag) &&
@@ -327,6 +359,7 @@ void TrackedDetectionManagerCalculator::AddDetections(
             detection, cc->InputTimestamp().Microseconds() / 1000);
 
     const int id = new_detection->unique_id();
+    LOG(INFO) << "add detection with id: " << id;
     waiting_for_update_detections_[id] = std::move(new_detection);
   }
 }

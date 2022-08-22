@@ -62,15 +62,18 @@ cc_library(
         "//mediapipe/graphs/tracking/subgraphs:renderer_cpu",
         "//mediapipe/gpu:gpu_buffer_to_image_frame_calculator",
         "//mediapipe/gpu:image_frame_to_gpu_buffer_calculator",
+        "//mediapipe/calculators/util:detection_label_id_to_text_calculator",
     ],
 )
 
 mediapipe_binary_graph(
     name = "toy_mobile_cpu_binary_graph",
-    graph = "toy_detection_tracking_mobile_cpu.pbtxt",
+    graph = "toy_detection_tracking_mobile_cpu_input.pbtxt",
     output_name = "toy_mobile_cpu.binarypb",
     deps = [":toy_mobile_calculators"],
 )
+
+
 
 
 mediapipe_binary_graph(

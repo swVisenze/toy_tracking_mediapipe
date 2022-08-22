@@ -429,13 +429,37 @@ absl::Status Graph::RunGraphUntilClose(JNIEnv* env) {
   return status;
 }
 
-absl::Status Graph::StartRunningGraph(JNIEnv* env) {
-  if (running_graph_) {
-    return absl::InternalError("Graph is already running.");
+absl::Status Graph::AddOutputPoller(std::string output_stream_name) {
+  if (output_pollers_.find(output_stream_name) == output_pollers_.end()) {
+    LOG(INFO) << "poller not found initialize here.";
+
+    ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller poller,
+            running_graph_->AddOutputStreamPoller(output_stream_name));
+    output_pollers_.emplace(output_stream_name, std::move(poller));
+
+//    absl::StatusOr<OutputStreamPoller> result = running_graph_->AddOutputStreamPoller(output_stream_name);
+//    if(result.ok()) {
+//      auto poller = result.value();
+//      output_pollers_.emplace(output_stream_name, poller);
+//    } else {
+//      LOG(INFO) << "AddOutputStreamPoller failed";
+//      return absl::InternalError("poller not added!");
+//    }
   }
+  return absl::OkStatus();
+}
+
+absl::Status Graph::StartRunningGraph(JNIEnv* env) {
   // Get a global reference to the packet class, so it can be used in other
   // native thread for call back.
   SetPacketJavaClass(env);
+  return StartRunningGraph();
+}
+
+absl::Status Graph::StartRunningGraph() {
+  if (running_graph_) {
+    return absl::InternalError("Graph is already running.");
+  }
   // Running as a synchronized mode, the same Java thread is available
   // throughout the run.
   running_graph_.reset(new CalculatorGraph());
@@ -543,6 +567,10 @@ absl::Status Graph::CloseAllPacketSources() {
 }
 
 absl::Status Graph::WaitUntilDone(JNIEnv* env) {
+  return WaitUntilDone();
+}
+
+absl::Status Graph::WaitUntilDone() {
   if (!running_graph_) {
     return absl::FailedPreconditionError("Graph must be running.");
   }
@@ -552,6 +580,10 @@ absl::Status Graph::WaitUntilDone(JNIEnv* env) {
 }
 
 absl::Status Graph::WaitUntilIdle(JNIEnv* env) {
+  return WaitUntilIdle();
+}
+
+absl::Status Graph::WaitUntilIdle() {
   if (!running_graph_) {
     return absl::FailedPreconditionError("Graph must be running.");
   }

@@ -16,6 +16,7 @@ node {
       thickness: 4.0
       color { r: 255 g: 0 b: 0 }
       render_detection_id: true
+      render_track_id: true
     }
   }
 }

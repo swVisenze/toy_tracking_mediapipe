@@ -53,6 +53,8 @@ class TrackedDetectionManager {
   // detections that are removed.
   std::vector<int> RemoveOutOfViewDetections();
 
+  std::vector<int> RemoveMultipleDetections(); 
+
   int GetNumDetections() const { return detections_.size(); }
 
   // Get TrackedDetection by its unique id.

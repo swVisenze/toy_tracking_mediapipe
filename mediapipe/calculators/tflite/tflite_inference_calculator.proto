@@ -136,4 +136,6 @@ message TfLiteInferenceCalculatorOptions {
   optional Delegate delegate = 5;
 
   repeated int32 output_tensor_index = 6;
+
+  optional bool log_time = 7 [default=false];
 }

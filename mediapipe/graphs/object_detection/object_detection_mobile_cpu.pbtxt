@@ -3,6 +3,13 @@
 # mediapipe/examples/android/src/java/com/mediapipe/apps/objectdetectioncpu and
 # mediapipe/examples/ios/objectdetectioncpu.
 
+profiler_config {
+  trace_enabled: true
+  enable_profiler: true
+  trace_log_interval_count: 200
+  trace_log_path: "/sdcard/Download/"
+}
+
 # Images on GPU coming into and out of the graph.
 input_stream: "input_video"
 output_stream: "output_video"
@@ -76,6 +83,12 @@ node {
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
       model_path: "mediapipe/models/ssdlite_object_detection.tflite"
+      log_time: true
+      delegate {
+        #gpu {}
+        #xnnpack {}
+        #nnapi {}
+      }
     }
   }
 }

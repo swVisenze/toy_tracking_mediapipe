@@ -78,8 +78,10 @@ std::vector<int> TrackedDetectionManager::AddDetection(
   // Erase old detections.
   for (auto id : ids_to_remove) {
     detections_.erase(id);
+//    LOG(INFO) <<"tracked detection manager removed id: " << id;
   }
   const int id = detection->unique_id();
+//  LOG(INFO) <<"tracked detection manager set unique id: " << id;
   detections_[id] = std::move(detection);
   return ids_to_remove;
 }
@@ -100,6 +102,36 @@ std::vector<int> TrackedDetectionManager::UpdateDetectionLocation(
   // the locations could be quite different before they are propagated to the
   // same timestamp.
   return RemoveDuplicatedDetections(detection.unique_id());
+}
+
+std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
+  std::vector<int> ids_to_remove;
+  if(detections_.size() > 1) { // find current tracking id
+    int cur_track_id = -1;
+    for (auto& existing_detection : detections_) {
+      int prev_id = existing_detection.second->previous_id();
+      if(prev_id > -1) {
+        if(cur_track_id < 0 || prev_id < cur_track_id) {
+          cur_track_id = prev_id;
+        }
+      }
+    }
+
+    for(auto& existing_detection: detections_) {
+      int prev_id = existing_detection.second->previous_id();
+      if (cur_track_id > -1) { // there is already a tracked target toy. remove all others
+        if (prev_id < 0 || prev_id > cur_track_id) {
+          ids_to_remove.push_back(existing_detection.first);
+        }
+      } else { // keep one toy id. in initialization stage.
+        cur_track_id = 0;
+      }
+    }
+  }
+  for (auto idx : ids_to_remove) {
+    detections_.erase(idx);
+  }
+  return ids_to_remove;
 }
 
 std::vector<int> TrackedDetectionManager::RemoveObsoleteDetections(
