@@ -215,10 +215,15 @@ absl::Status RunMPPGraph() {
       if(t1 <= timestamp) {
         cur_detection_index += 1;
         auto& origin_detections = origin_detection_packet.Get<std::vector<mediapipe::Detection>>();
-        if(origin_detections.size() > 0) {
-          origin_detection_str = getBBoxString(origin_detections[0]);
-//          LOG(INFO) <<"timestamp: " << t1 <<" box: "<< origin_detection_str;
+        for(int i=0; i<origin_detections.size(); i++) {
+          origin_detection_str += getBBoxString(origin_detections[i]);
+          if (i != origin_detections.size() - 1) {
+            origin_detection_str += "|";
+          }
         }
+//        if(origin_detections.size() > 0) {
+//          origin_detection_str = getBBoxString(origin_detections[0]);
+//        }
       }
     }
 
