@@ -6,3 +6,8 @@ mediapipe/MediaPipe.tulsiproj/*.tulsiconf-user
 mediapipe/provisioning_profile.mobileprovision
 .configure.bazelrc
 .user.bazelrc
+bazel-bin
+bazel-out
+bazel-testlogs
+bazel-mediapipe
+
