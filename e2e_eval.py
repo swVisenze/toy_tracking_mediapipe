@@ -4,6 +4,8 @@ Script for end-to-end evaluation
 import typer
 from path import Path
 
+VIDEO_EXT = ".mp4"
+
 
 def main(
     input_folder: Path = typer.Argument(
@@ -23,7 +25,7 @@ def main(
         path_type=Path
     )
 ):
-    ...
+    video_paths = input_folder.files(f"*.{VIDEO_EXT}")
 
 
 if __name__ == "__main__":
