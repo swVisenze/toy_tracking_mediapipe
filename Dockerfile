@@ -53,6 +53,9 @@ RUN pip3 install six==1.14.0
 RUN pip3 install protobuf==3.6.1
 RUN pip3 install tensorflow==1.14.0
 RUN pip3 install tf_slim
+RUN pip3 install typer
+RUN pip3 install path
+RUN pip3 install joblib
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
