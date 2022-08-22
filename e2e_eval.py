@@ -4,6 +4,8 @@ Script for end-to-end evaluation
 import typer
 import subprocess
 from path import Path
+from joblib import Parallel, delayed
+
 
 VIDEO_EXT = "MOV"
 EXE = "bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu"
@@ -55,9 +57,10 @@ def main(
         "MEDIAPIPE_DISABLE_GPU=1",
         "mediapipe/examples/desktop/object_tracking:toy_tracking_cpu"
     ], check=True)
-    for video_path in input_folder.files(f"*.{VIDEO_EXT}"):
-        exec_inference(video_path, workdir)
-
+    Parallel(n_jobs=-1, prefer="threads")(
+        delayed(exec_inference)(video_path, workdir)
+        for video_path in input_folder.files(f"*.{VIDEO_EXT}")
+    )
     print("== Done ==")
 
 
