@@ -46,7 +46,8 @@ cc_library(
     deps = [
         "//mediapipe/calculators/core:packet_resampler_calculator",
         "//mediapipe/graphs/tracking/subgraphs:toy_detection_cpu",
-        "//mediapipe/graphs/tracking/subgraphs:object_tracking_cpu",
+#        "//mediapipe/graphs/tracking/subgraphs:object_tracking_cpu",
+        "//mediapipe/graphs/tracking/subgraphs:object_tracking_detection_out",
         "//mediapipe/graphs/tracking/subgraphs:renderer_cpu",
     ],
 )
@@ -70,6 +71,13 @@ mediapipe_binary_graph(
     name = "toy_mobile_cpu_binary_graph",
     graph = "toy_detection_tracking_mobile_cpu_input.pbtxt",
     output_name = "toy_mobile_cpu.binarypb",
+    deps = [":toy_mobile_calculators"],
+)
+
+mediapipe_binary_graph(
+    name = "toy_mobile_cpu_render_binary_graph",
+    graph = "toy_detection_tracking_mobile_cpu.pbtxt",
+    output_name = "toy_mobile_cpu_render.binarypb",
     deps = [":toy_mobile_calculators"],
 )
 

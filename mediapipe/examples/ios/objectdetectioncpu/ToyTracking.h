@@ -11,13 +11,14 @@
 #import <Foundation/Foundation.h>
 
 
+
 @interface ToyTracking : NSObject
 - (void)loadGraph:(int) width
       height: (int) height;
 
 - (void)destroy;
 
-- (void)reset:(const char*) code;
+- (bool)reset:(int) frames;
 
 - (NSString*)tracking:(const unsigned char*)image
         size:(int)size

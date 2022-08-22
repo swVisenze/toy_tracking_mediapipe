@@ -36,8 +36,9 @@ android_binary(
     name = "toytrackingcpu",
     srcs = glob(["*.java"]),
     assets = [
-        "//mediapipe/graphs/tracking:toy_mobile_cpu.binarypb",
-        "//mediapipe/models:toy_detection_efficientnet.tflite"
+        "//mediapipe/graphs/tracking:toy_mobile_cpu_render.binarypb",
+        "//mediapipe/models:toy_detection_m3l075_2d_v4_dv4_av3.tflite",
+        "//mediapipe/models:object_detection_labelmap.txt"
     ],
     assets_dir = "",
     manifest = "//mediapipe/examples/android/src/java/com/google/mediapipe/apps/basic:AndroidManifest.xml",
@@ -46,7 +47,7 @@ android_binary(
         "appName": "toy Tracking (CPU)",
         "mainActivity": "com.google.mediapipe.apps.basic.MainActivity",
         "cameraFacingFront": "False",
-        "binaryGraphName": "toy_mobile_cpu.binarypb",
+        "binaryGraphName": "toy_mobile_cpu_render.binarypb",
         "inputVideoStreamName": "input_video",
         "outputVideoStreamName": "output_video",
         "flipFramesVertically": "True",

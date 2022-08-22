@@ -34,7 +34,7 @@ class TrackedDetectionManager {
 
   // Adds a new detection at a given timestamp. Returns the IDs of the
   // detections that are removed due to duplication.
-  std::vector<int> AddDetection(std::unique_ptr<TrackedDetection> detection);
+  void AddDetection(TrackedDetection* detection);
 
   // Updates the location of a detection identified by its id.
   // Returns false if the requested id doesn't exist a corresponding
@@ -75,14 +75,35 @@ class TrackedDetectionManager {
     config_ = config;
   }
 
+  void SetPreviousConfirmedDetection(const TrackedDetection& trackedDetection) {
+    if(previous_confirmed_detection_.get() == nullptr) {
+      previous_confirmed_detection_= absl::make_unique<TrackedDetection>(trackedDetection);
+    } else {
+      *previous_confirmed_detection_ = trackedDetection;
+    }
+  }
+
+  const TrackedDetection* GetPreviousConfirmedDetection() const {
+    return previous_confirmed_detection_.get();
+  }
+
+  void RemoveDetectionById(int idx) {
+    auto detection_ptr = detections_.find(idx);
+    if (detection_ptr !=
+            detections_.end()) {
+      detections_.erase(detection_ptr);
+    }
+  }
+
  private:
   // Finds all detections that are duplicated with the one of |id| and remove
   // all detections except the one that is added most recently. Returns the IDs
   // of the detections that are removed.
   std::vector<int> RemoveDuplicatedDetections(int id);
 
+  std::unique_ptr<TrackedDetection> previous_confirmed_detection_;
   absl::node_hash_map<int, std::unique_ptr<TrackedDetection>> detections_;
-
+  absl::node_hash_map<int, float> detections_iou_;
   mediapipe::TrackedDetectionManagerConfig config_;
 };
 

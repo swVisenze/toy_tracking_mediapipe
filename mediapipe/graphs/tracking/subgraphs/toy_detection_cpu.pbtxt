@@ -52,7 +52,7 @@ node {
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
       model_path: "mediapipe/models/toy_detection_m3l075_2d_v4_dv4_av3.tflite"
-      # log_time: true
+      log_time: true
       delegate { xnnpack {} }
       output_tensor_index: 404  #wh2d 1,48,48,4
       output_tensor_index: 406  #heatmap2d 1,48,48,1
@@ -67,10 +67,10 @@ node {
    output_stream: "DETECTIONS:detections"
    options: {
      [mediapipe.TfLiteTensorsToToyDetectionCalculatorOptions.ext] {
+       # num_landmarks: 8
        num_boxes: 3
-       num_landmarks: 8
        down_ratio: 8
-       min_score_thresh: 0.1
+       min_score_thresh: 0.5
        input_image_width: 384
        input_image_height: 384
      }
@@ -84,7 +84,7 @@ node {
   output_stream: "filtered_detections"
   node_options: {
     [type.googleapis.com/mediapipe.NonMaxSuppressionCalculatorOptions] {
-      min_suppression_threshold: 0.5
+      min_suppression_threshold: 0.2
       max_num_detections: 3
       overlap_type: INTERSECTION_OVER_UNION
       return_empty_detections: true

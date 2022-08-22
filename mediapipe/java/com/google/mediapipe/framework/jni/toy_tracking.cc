@@ -24,11 +24,13 @@ const std::string OUTPUT_TRACKED_DETECTION_STREAM_NAME = "tracked_detections";
 
 const std::string STATUS_INIT ="initializing";
 const std::string STATUS_TRACKING = "tracking";
+const std::string STATUS_SEARCHING = "searching";
 const std::string STATUS_LOST = "lost";
-const size_t time_gap_us = 50000; // 50 ms -> 20 fps
+const size_t time_gap_us = 40000; // 40 ms -> 25 fps
 using JSON = nlohmann::json;
 
-std::string MPG_code = "";
+int buffer_frames=25;
+int lost_frames = 0;
 int image_width;
 int image_height;
 bool is_graph_running = false;
@@ -61,57 +63,57 @@ JNIEXPORT void JNICALL TOY_TRACKING_OUTPUT_METHOD(nativeInit)(
     if (!graph_config.ParseFromArray(graph_config_string.c_str(),
                                      graph_config_string.length())) {
         LOG(INFO) <<"graph config parse failed!!!";
-    } else {
-        graph.reset(new mediapipe::CalculatorGraph());
-        graph->Initialize(graph_config);
-        LOG(INFO) <<"graph initialized";
-//        ASSIGN_OR_RETURN(poller,
-//                graph.AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME));
-//        LOG(INFO) <<"graph AddOutputStreamPoller";
-        absl::StatusOr<mediapipe::OutputStreamPoller> result = graph->AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME);
-        if(result.ok()) {
-            poller = std::make_unique<mediapipe::OutputStreamPoller>(std::move(result.value()));
-            LOG(INFO) <<"add poller";
-        }
     }
 }
 
 JNIEXPORT void JNICALL TOY_TRACKING_OUTPUT_METHOD(nativeDestroy)(
         JNIEnv* env, jobject thiz) {
-    MPG_code = "";
     image_width = 0;
     image_height = 0;
     is_graph_running = false;
     obj_id = -1;
     cur_time_us = 1;
+    lost_frames = 0;
+    buffer_frames = 25;
     graph->CloseAllInputStreams();
-    graph->WaitUntilDone();
+//    graph->WaitUntilDone();
     graph->Cancel();
     graph.reset(nullptr);
     poller.reset(nullptr);
 }
 
 // this is native method NOT JNI method
-JNIEXPORT void toy_tracking_reset(const char* code) {
-    MPG_code = code;
+JNIEXPORT bool toy_tracking_reset(int frames) {
+    buffer_frames = frames;
     if(is_graph_running) {
         absl::Status status = graph->CloseAllInputStreams();
-        if(status.ok()) {
-            LOG(INFO) << "CloseAllInputStreams";
-            graph->WaitUntilDone();
-            LOG(INFO) << "graph done";
-            graph->Cancel();
-        }
+        graph->Cancel();
+//        LOG(INFO) << "graph cancelled";
+        poller.reset(nullptr);
     }
     obj_id = -1;
     cur_time_us = 1;
-    absl::Status status = graph->StartRun({});
-    is_graph_running = status.ok();
-    LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
+    lost_frames = 0;
+    graph.reset(new mediapipe::CalculatorGraph());
+//    LOG(INFO) <<"graph reset with new object";
+    absl::Status status = graph->Initialize(graph_config);
+//    LOG(INFO) <<"graph initialized: "<< status.ok();
+    absl::StatusOr<mediapipe::OutputStreamPoller> result = graph->AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME);
+    if(result.ok()) {
+        poller = std::make_unique<mediapipe::OutputStreamPoller>(std::move(result.value()));
+//        poller.reset(std::move(result.value()));
+//        LOG(INFO) <<"add poller";
+        absl::Status status = graph->StartRun({});
+        is_graph_running = status.ok();
+//        LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
+        return is_graph_running;
+    } else {
+        return false;
+    }
 }
 
 // this is native method NOT JNI method
-JNIEXPORT const char* toy_tracking_tracking(const char* image_buffer, int size, int width, int height) {
+JNIEXPORT const char* toy_tracking_tracking(const unsigned char* image_buffer, int size, int width, int height) {
 //    //buffer is  in RGBA image format
     if(!is_graph_running) {
         LOG(INFO) << "graph not run yet";
@@ -151,9 +153,19 @@ JNIEXPORT const char* toy_tracking_tracking(const char* image_buffer, int size, 
     std::string status;
     std::string track_box;
     std::string debug_message;
+    int detection_index = 0;
+
     if(out_detections.size()>0) {
         status = STATUS_TRACKING;
-        auto detection = out_detections[0];
+        lost_frames = 0;
+        obj_id = out_detections[0].detection_id();
+        for(int i=1; i < out_detections.size(); i++) {
+            if(out_detections[i].detection_id() < obj_id) {
+                obj_id = out_detections[i].detection_id();
+                detection_index = i;
+            }
+        }
+        auto& detection = out_detections[detection_index];
         auto& relative_bbox = detection.location_data().relative_bounding_box();
         float min_x = relative_bbox.xmin();
         float min_y = relative_bbox.ymin();
@@ -166,10 +178,11 @@ JNIEXPORT const char* toy_tracking_tracking(const char* image_buffer, int size, 
         debug_message = detection.track_id();
         obj_id = detection.detection_id();
     } else {
-        if(obj_id > 0) {
+        lost_frames += 1;
+        if(lost_frames > buffer_frames) {
             status = STATUS_LOST;
         } else {
-            status = STATUS_INIT;
+            status = STATUS_SEARCHING;
         }
         track_box = "";
         debug_message = "NO DETECTION OUTPUT";
@@ -183,19 +196,8 @@ JNIEXPORT const char* toy_tracking_tracking(const char* image_buffer, int size, 
 //    LOG(INFO) <<"json output: "<< jsonStr;
     // so strange this can output to unity ...
     std::string dump = "" + jsonStr;
+//    char* output = (char*)malloc(dump.length() + 1);
+//    strcpy(output, dump.c_str());
     const char *output = dump.c_str();
-//    const char *output = MPG_code.c_str();
     return output;
  }
-
-//JNIEXPORT void toy_tracking_init() {
-//    LOG(INFO) << "init function called";
-//    image_width = 640;
-//    image_height = 480;
-//}
-
-//JNIEXPORT void toy_tracking_destroy() {
-//    MPG_code = "";
-//    image_width = 0;
-//    image_height = 0;
-//}

@@ -14,7 +14,8 @@
 //
 // An example of sending OpenCV webcam frames into a MediaPipe graph.
 #include <cstdlib>
-
+#include <iostream>
+#include <fstream>
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "mediapipe/framework/calculator_framework.h"
@@ -29,8 +30,9 @@
 #include "mediapipe/framework/port/status.h"
 
 constexpr char kInputStream[] = "input_video";
-constexpr char kOutputStream[] = "output_video";
 constexpr char KOutputDetection[] = "tracked_detections";
+constexpr char kOutputStream[] = "output_video";
+//constexpr char kOutputDetectionVideo[] = "detection_output_video";
 constexpr char kWindowName[] = "MediaPipe";
 
 ABSL_FLAG(std::string, calculator_graph_config_file, "",
@@ -68,6 +70,7 @@ absl::Status RunMPPGraph() {
   RET_CHECK(capture.isOpened());
 
   cv::VideoWriter writer;
+  std::ofstream fileWriter;
   const bool save_video = !absl::GetFlag(FLAGS_output_video_path).empty();
   if (!save_video) {
     cv::namedWindow(kWindowName, /*flags=WINDOW_AUTOSIZE*/ 1);
@@ -76,6 +79,10 @@ absl::Status RunMPPGraph() {
     capture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
     capture.set(cv::CAP_PROP_FPS, 30);
 #endif
+  } else {
+    LOG(INFO) << "Prepare csv writer.";
+    fileWriter.open(absl::GetFlag(FLAGS_output_video_path) + ".csv");
+    fileWriter << "timestamp,detection_id,box\n";
   }
 
   LOG(INFO) << "Start running the calculator graph.";
@@ -84,6 +91,10 @@ absl::Status RunMPPGraph() {
 
   ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller detectionPoller,
           graph.AddOutputStreamPoller(KOutputDetection));
+
+//  ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller detectionImagePoller,
+//          graph.AddOutputStreamPoller(kOutputDetectionVideo));
+
   MP_RETURN_IF_ERROR(graph.StartRun({}));
 
   LOG(INFO) << "Start grabbing and processing frames.";
@@ -91,7 +102,9 @@ absl::Status RunMPPGraph() {
   size_t cur_time_us = 1;
   size_t time_gap_us = 40000; // 40 ms -> 25 fps
   int obj_id = -1;
-  bool tracker_lost = false;
+  int lost_frames = 0;
+  int MAX_LOST_FRAMES = 25;
+  bool track_lost = false;
   while (grab_frames) {
     // Capture opencv camera or video frame.
     cv::Mat camera_frame_raw;
@@ -127,6 +140,8 @@ absl::Status RunMPPGraph() {
                           .At(mediapipe::Timestamp(cur_time_us))));
 
     cur_time_us = cur_time_us + time_gap_us;
+//    cv::waitKey(40); // wait for graph processing.
+
     // Get the graph result packet, or stop if that fails.
     mediapipe::Packet packet;
     if (!poller.Next(&packet)) break;
@@ -136,27 +151,69 @@ absl::Status RunMPPGraph() {
     mediapipe::Packet detectionPacket;
     if (!detectionPoller.Next(&detectionPacket)) break;
     auto& out_detections = detectionPacket.Get<std::vector<mediapipe::Detection>>();
+
+    auto timestamp = detectionPacket.Timestamp();
     if(out_detections.size() > 0) {
-      auto detection = out_detections[0];
+      auto& detection = out_detections[0];
+      lost_frames = 0;
       obj_id = detection.detection_id();
-    } else if(obj_id > -1) {
-      LOG(INFO) << "TRACKER LOST !!!!!!!";
-      tracker_lost = true;
+//      LOG(INFO) << "graph output detection with " << obj_id;
+      auto& relative_bbox = detection.location_data().relative_bounding_box();
+      float min_x = relative_bbox.xmin();
+      float min_y = relative_bbox.ymin();
+//        LOG(INFO) <<"min_x: "<< min_x << " min_y: "<<min_y;
+      float max_x = min_x + relative_bbox.width();
+      float max_y = min_y + relative_bbox.height();
+//        LOG(INFO) <<"max_x: "<< max_x << " max_y: "<<max_y;
+
+      std::string line = std::to_string(timestamp.Value()) + ',' + std::to_string(obj_id) + ","
+              + std::to_string(min_x) + " " + std::to_string(min_y) + ";"
+              + std::to_string(max_x) + " " + std::to_string(max_y) + "\n";
+
+      fileWriter << line;
+    } else {
+      fileWriter << std::to_string(timestamp.Value()) + ",,\n";
+      if(obj_id > -1) {
+        LOG(INFO) << "FRAME LOST !!!!!!!";
+        lost_frames += 1;
+        if(lost_frames >= MAX_LOST_FRAMES) {
+          track_lost = true;
+        }
+      }
     }
+
+//    mediapipe::Packet detectionImagePacket;
+//    if (!detectionImagePoller.Next(&detectionImagePacket)) {
+//      LOG(INFO) << "cannot get detection image packet";
+//      break;
+//    }
+//    auto& output_frame_detection = detectionImagePacket.Get<mediapipe::ImageFrame>();
 
 
     // Convert back to opencv for display or saving.
     cv::Mat output_frame_mat = mediapipe::formats::MatView(&output_frame);
     cv::cvtColor(output_frame_mat, output_frame_mat, cv::COLOR_RGB2BGR);
+
+    // Convert back to opencv for display or saving.
+//    cv::Mat output_detection_frame_mat = mediapipe::formats::MatView(&output_frame_detection);
+//    cv::cvtColor(output_detection_frame_mat, output_detection_frame_mat, cv::COLOR_RGB2BGR);
     if (save_video) {
       if (!writer.isOpened()) {
         LOG(INFO) << "Prepare video writer.";
-        writer.open(absl::GetFlag(FLAGS_output_video_path),
+        writer.open(absl::GetFlag(FLAGS_output_video_path) + ".mp4",
                     mediapipe::fourcc('a', 'v', 'c', '1'),  // .mp4
                     capture.get(cv::CAP_PROP_FPS), output_frame_mat.size());
         RET_CHECK(writer.isOpened());
       }
-      if(tracker_lost) {
+//      if(!detectionWriter.isOpened()) {
+//        LOG(INFO) << "Prepare video writer.";
+//        detectionWriter.open(absl::GetFlag(FLAGS_output_video_path)+"_detection.mp4",
+//                    mediapipe::fourcc('a', 'v', 'c', '1'),  // .mp4
+//                    capture.get(cv::CAP_PROP_FPS), output_detection_frame_mat.size());
+//        RET_CHECK(detectionWriter.isOpened());
+//      }
+//      detectionWriter.write(output_detection_frame_mat);
+      if(track_lost) {
         writer.write(camera_frame_raw);
       } else {
         writer.write(output_frame_mat);
@@ -171,6 +228,7 @@ absl::Status RunMPPGraph() {
 
   LOG(INFO) << "Shutting down.";
   if (writer.isOpened()) writer.release();
+  if(fileWriter.is_open()) fileWriter.close();
   MP_RETURN_IF_ERROR(graph.CloseInputStream(kInputStream));
   return graph.WaitUntilDone();
 }

@@ -57,8 +57,11 @@ class TrackedDetection {
   bool IsSameAs(const TrackedDetection& other, float max_area_ratio = 3.0f,
                 float min_overlap_ratio = 0.5f) const;
 
+
   // Merges labels and score from another TrackedDetection.
   void MergeLabelScore(const TrackedDetection& other);
+
+  float IntersectionOverUnion(const TrackedDetection& other);
 
   int64 initial_timestamp() const { return initial_timestamp_; }
   int64 last_updated_timestamp() const { return last_updated_timestamp_; }
