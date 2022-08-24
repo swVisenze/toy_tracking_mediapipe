@@ -7,7 +7,7 @@ from path import Path
 from joblib import Parallel, delayed
 
 
-VIDEO_EXT = "MOV"
+VIDEO_EXT = "mp4"
 EXE = "bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu"
 GRAPH_CONFIG_FILE = "mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt"
 
@@ -59,7 +59,7 @@ def main(
     ], check=True)
     Parallel(n_jobs=-1, prefer="threads")(
         delayed(exec_inference)(video_path, workdir)
-        for video_path in input_folder.files(f"*.{VIDEO_EXT}")
+        for video_path in input_folder.walkfiles(f"*.{VIDEO_EXT}")
     )
     print("== Done ==")
 
