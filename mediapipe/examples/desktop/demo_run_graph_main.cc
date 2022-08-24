@@ -133,6 +133,7 @@ absl::Status RunMPPGraph() {
       break;
     }
     cv::Mat camera_frame;
+    cv::rotate(camera_frame_raw, camera_frame_raw, cv::ROTATE_90_CLOCKWISE);
     cv::cvtColor(camera_frame_raw, camera_frame, cv::COLOR_BGR2RGB);
     if (!load_video) {
       cv::flip(camera_frame, camera_frame, /*flipcode=HORIZONTAL*/ 1);
