@@ -26,10 +26,10 @@ const std::string STATUS_INIT ="initializing";
 const std::string STATUS_TRACKING = "tracking";
 const std::string STATUS_SEARCHING = "searching";
 const std::string STATUS_LOST = "lost";
-const size_t time_gap_us = 40000; // 40 ms -> 25 fps
+const size_t time_gap_us = 50000; // 50 ms -> 20 fps
 using JSON = nlohmann::json;
 
-int buffer_frames=25;
+int buffer_frames=20;
 int lost_frames = 0;
 int image_width;
 int image_height;
@@ -74,7 +74,7 @@ JNIEXPORT void JNICALL TOY_TRACKING_OUTPUT_METHOD(nativeDestroy)(
     obj_id = -1;
     cur_time_us = 1;
     lost_frames = 0;
-    buffer_frames = 25;
+    buffer_frames = 20;
     graph->CloseAllInputStreams();
 //    graph->WaitUntilDone();
     graph->Cancel();
