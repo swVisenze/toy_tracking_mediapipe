@@ -51,7 +51,7 @@ node {
   output_stream: "TENSORS:output_tensor"
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
-      model_path: "mediapipe/models/toy_detection_mobilenetv3_large075_2d_v3_portrait_baseline.tflite"
+      model_path: "mediapipe/models/toy_detection_mobilenetv3_large075_2d_v3_portrait_v3.tflite"
       log_time: true
       delegate { xnnpack {} }
       output_tensor_index: 404  #wh2d 1,48,48,4
