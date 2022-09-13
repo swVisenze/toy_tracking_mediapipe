@@ -227,6 +227,7 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
 
       previous_added_detections_[waiting_for_update_detectoin_ptr.first] = std::move(waiting_for_update_detectoin_ptr.second);
 //      LOG(INFO) << "added previous_added_detections_ id: "<<waiting_for_update_detectoin_ptr.first;
+
       waiting_for_update_detections_.erase(waiting_for_update_detectoin_ptr.first);
     }
 
@@ -314,11 +315,17 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
         if(pre_detection == nullptr || pre_detection->unique_id() != detection.unique_id()) {
           // get the tracked detection instance which is NOT been updated by UpdateDetectionLocation method.
           // e.g. the original detection result.
-          auto original_detection = *previous_added_detections_[detection.unique_id()];
-          LOG(INFO) <<"set previous confirmed detection, id: "<<original_detection.unique_id();
-          tracked_detection_manager_.SetPreviousConfirmedDetection(original_detection);
-          // clear update detections cache since we have already saved previous confirmed detection above.
-          previous_added_detections_.clear();
+          LOG(INFO) <<"set previous confirmed detection, id: "<<detection.unique_id();
+          if(previous_added_detections_.find(detection.unique_id()) != previous_added_detections_.end()) {
+            auto original_detection = *previous_added_detections_[detection.unique_id()];
+
+            tracked_detection_manager_.SetPreviousConfirmedDetection(original_detection);
+            // clear update detections cache since we have already saved previous confirmed detection above.
+            previous_added_detections_.clear();
+          } else {
+            LOG(INFO) <<"NO previous added detections found!!! id: "<<detection.unique_id();
+          }
+
         }
       }
     }
