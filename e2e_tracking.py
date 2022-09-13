@@ -12,7 +12,7 @@ EXE = "bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu"
 GRAPH_CONFIG_FILE = "mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt"
 
 
-def exec_inference(video_path, workdir):
+def exec_inference(video_path, workdir, suffix):
     """ Run e2e inference and output both video and csv files
 
     Parameters:
@@ -22,7 +22,7 @@ def exec_inference(video_path, workdir):
     """
     output_path = workdir / video_path.stem
     subprocess.run([
-        EXE,
+        EXE + "suffix",
         f"--calculator_graph_config_file={GRAPH_CONFIG_FILE}",
         f"--input_video_path={video_path}",
         f"--output_video_path={output_path}"
@@ -45,6 +45,10 @@ def main(
         writable=True,
         help="Output folder",
         path_type=Path
+    ),
+    suffix: str = typer.Option(
+        default="",
+        help="suffix of the exe"
     )
 ):
     workdir.mkdir_p()
@@ -55,10 +59,10 @@ def main(
         "opt",
         "--define",
         "MEDIAPIPE_DISABLE_GPU=1",
-        "mediapipe/examples/desktop/object_tracking:toy_tracking_cpu"
+        f"mediapipe/examples/desktop/object_tracking:toy_tracking_cpu{suffix}"
     ], check=True)
-    Parallel(n_jobs=-1, prefer="threads")(
-        delayed(exec_inference)(video_path, workdir)
+    Parallel(n_jobs=1, prefer="processes")(
+        delayed(exec_inference)(video_path, workdir, suffix)
         for video_path in input_folder.walkfiles(f"*.{VIDEO_EXT}")
     )
     print("== Done ==")
