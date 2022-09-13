@@ -115,6 +115,7 @@ std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
   float max_iou = 0.f;
   float min_distance_to_center = 1.0f;
   int min_distance_detection_id = -1;
+  int min_previous_detection_id = -1;
   for (auto& existing_detection : detections_) {
     int prev_id = existing_detection.second->previous_id();
     if(prev_id < 0) {
@@ -129,6 +130,12 @@ std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
       int id = existing_detection.first;
       if(detections_iou_[id] > max_iou) {
         max_iou = detections_iou_[id];
+      }
+      // find the trackedDetection with smallest previous id
+      if(min_previous_detection_id == -1) {
+          min_previous_detection_id = prev_id;
+      } else if(prev_id < min_previous_detection_id) {
+          min_previous_detection_id = prev_id;
       }
     }
   }
@@ -178,6 +185,17 @@ std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
     }
   }
 
+  // final check to ensure there is only one trackedDetection box left
+  if(detections_.size() - ids_to_remove.size() > 1) {
+      for (auto& existing_detection : detections_) {
+          int prev_id = existing_detection.second->previous_id();
+          if(prev_id > min_previous_detection_id) {
+              LOG(INFO) << "remove trackedDetection with a bigger previous id: " << prev_id;
+              ids_to_remove.push_back(existing_detection.first);
+          }
+      }
+  }
+//  LOG(INFO) << "detections left: " << detections_.size() - ids_to_remove.size();
   for (auto idx : ids_to_remove) {
     detections_.erase(idx);
   }
