@@ -57,7 +57,7 @@ def main(
         "MEDIAPIPE_DISABLE_GPU=1",
         "mediapipe/examples/desktop/object_tracking:toy_tracking_cpu"
     ], check=True)
-    Parallel(n_jobs=-1, prefer="threads")(
+    Parallel(n_jobs=1, prefer="threads")(
         delayed(exec_inference)(video_path, workdir)
         for video_path in input_folder.walkfiles(f"*.{VIDEO_EXT}")
     )
