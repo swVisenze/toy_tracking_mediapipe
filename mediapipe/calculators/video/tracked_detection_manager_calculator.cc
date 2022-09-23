@@ -219,16 +219,12 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
     // Collect all detections that are removed.
     auto removed_detection_ids = absl::make_unique<std::vector<int>>();
 
-    for (auto& waiting_for_update_detectoin_ptr : waiting_for_update_detections_) {
-//      tracked_detection_manager_.AddDetection(
-//              std::move(waiting_for_update_detectoin_ptr.second));
-      tracked_detection_manager_.AddDetection(
-              waiting_for_update_detectoin_ptr.second.get());
-
-      previous_added_detections_[waiting_for_update_detectoin_ptr.first] = std::move(waiting_for_update_detectoin_ptr.second);
-//      LOG(INFO) << "added previous_added_detections_ id: "<<waiting_for_update_detectoin_ptr.first;
-
-      waiting_for_update_detections_.erase(waiting_for_update_detectoin_ptr.first);
+    const auto& tracked_detections =
+            tracked_detection_manager_.GetAllTrackedDetections();
+    auto cur_tracking_id = -1;
+    for (const auto& detection_ptr : tracked_detections) {
+      cur_tracking_id = detection_ptr.first;  // get the first detection id it is the current tracking detection
+      break;
     }
 
     for (const TimedBoxProto& tracked_box : tracked_boxes.box()) {
@@ -240,15 +236,50 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
       bounding_box.set_height(tracked_box.bottom() - tracked_box.top());
       bounding_box.set_width(tracked_box.right() - tracked_box.left());
       bounding_box.set_rotation(tracked_box.rotation());
-//      LOG(INFO) << "tracked box id: " << tracked_box.id() << " at: " << cc->InputTimestamp();
-      auto removed_ids = tracked_detection_manager_.UpdateDetectionLocation(
-          tracked_box.id(), bounding_box, tracked_box.time_msec());
+//      LOG(INFO) << "tracked box id: " << tracked_box.id() << " at: " << cc->InputTimestamp() << " center x: " << bounding_box.x_center() << " center y: " << bounding_box.y_center();
+      auto waiting_for_update_detectoin_ptr =
+              waiting_for_update_detections_.find(tracked_box.id());
+      if (waiting_for_update_detectoin_ptr !=
+          waiting_for_update_detections_.end()) {
+        // update detection tracking box to current frame.
+        auto tracked_detection = waiting_for_update_detectoin_ptr->second.get();
+        tracked_detection->set_bounding_box(bounding_box);
+        tracked_detection->set_last_updated_timestamp(tracked_box.time_msec());
 
+        tracked_detection_manager_.AddDetection(
+                tracked_detection, cur_tracking_id);
+//        auto removed_ids = tracked_detection_manager_.AddDetection(
+//                tracked_detection, cur_tracking_id);
+
+//        for(const int id: removed_ids) {
+//          LOG(INFO) <<"AddDetection removed id: " << id;
+//        }
+//        MoveIds(removed_detection_ids.get(), std::move(removed_ids));
+
+        previous_added_detections_[waiting_for_update_detectoin_ptr->first] = std::move(waiting_for_update_detectoin_ptr->second);
+        waiting_for_update_detections_.erase(waiting_for_update_detectoin_ptr);
+      } else {
+        tracked_detection_manager_.UpdateDetectionLocation(
+                tracked_box.id(), bounding_box, tracked_box.time_msec());
+//        auto removed_ids = tracked_detection_manager_.UpdateDetectionLocation(
+//                tracked_box.id(), bounding_box, tracked_box.time_msec());
+
+//        for(const int id: removed_ids) {
+//          LOG(INFO) <<"UpdateDetectionLocation removed id: " << id;
+//        }
+//        MoveIds(removed_detection_ids.get(), std::move(removed_ids));
+      }
+    }
+
+    for (const TimedBoxProto& tracked_box : tracked_boxes.box()) {
+      auto removed_ids = tracked_detection_manager_.RemoveDuplicatedDetections(tracked_box.id());
       for(const int id: removed_ids) {
-        LOG(INFO) <<"UpdateDetectionLocation removed id: " << id;
+        LOG(INFO) <<"in box id: " << tracked_box.id() <<" RemoveDuplicatedDetections removed id: " << id;
       }
       MoveIds(removed_detection_ids.get(), std::move(removed_ids));
     }
+
+
     // TODO: Should be handled automatically in detection manager.
     auto removed_ids = tracked_detection_manager_.RemoveObsoleteDetections(
         GetInputTimestampMs(cc) - kDetectionUpdateTimeOutMS);
@@ -286,9 +317,10 @@ absl::Status TrackedDetectionManagerCalculator::Process(CalculatorContext* cc) {
 
 //    LOG(INFO) << "current timestamp: "<<GetInputTimestampMs(cc) << " removed_ids size: "<< removed_ids.size();
 
-    // Output detections and corresponding bounding boxes.
     const auto& all_detections =
-        tracked_detection_manager_.GetAllTrackedDetections();
+            tracked_detection_manager_.GetAllTrackedDetections();
+
+    // Output detections and corresponding bounding boxes.
     auto output_detections = absl::make_unique<std::vector<Detection>>();
     auto output_boxes = absl::make_unique<std::vector<NormalizedRect>>();
 

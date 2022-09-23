@@ -51,14 +51,14 @@ float DistanceToCenter(const NormalizedRect& bounding_box) {
 
 namespace mediapipe {
 
-void TrackedDetectionManager::AddDetection(TrackedDetection* detection) {
-
+void TrackedDetectionManager::AddDetection(TrackedDetection* detection, int existing_id) {
   int64 latest_duplicate_timestamp = 0;
-  // TODO: All detections should be fastforwarded to the current
-  // timestamp before adding the detection manager. E.g. only check they are the
-  // same if the timestamp are the same.
-  for (auto& existing_detection_ptr : detections_) {
-    const auto& existing_detection = *existing_detection_ptr.second;
+  auto existing_detection_ptr = detections_.find(existing_id);
+  if (existing_detection_ptr != detections_.end()) {
+    const auto& existing_detection = *existing_detection_ptr->second;
+    auto existing_box = existing_detection.bounding_box();
+//    LOG(INFO) << "existing id: " << existing_detection.unique_id() << " center x: " << existing_box.x_center() << " center y: " << existing_box.y_center();
+//    LOG(INFO) << "add detection id: " << detection->unique_id() << " center x: " << detection->bounding_box().x_center() << " center y: " << detection->bounding_box().y_center();
     if (detection->IsSameAs(existing_detection,
                             config_.is_same_detection_max_area_ratio(),
                             config_.is_same_detection_min_overlap_ratio())) {
@@ -81,21 +81,25 @@ void TrackedDetectionManager::AddDetection(TrackedDetection* detection) {
       if(existing_detection.initial_timestamp() < detection->initial_timestamp()) {
         float iou = detection->IntersectionOverUnion(existing_detection);
         detections_iou_[detection->unique_id()] = iou;
+        LOG(INFO) << "existing_detection id: "<< existing_detection.unique_id() << " detection id: "<< detection->unique_id() << " iou: "<< iou;
       }
     }
+  } else {
+    LOG(INFO) << "existing detection id: " << existing_id << " NOT FOUND IN AddDetection";
   }
+
   const int id = detection->unique_id();
 //  LOG(INFO) <<"tracked detection manager set unique id: " << id;
 //  detections_[id] = std::move(detection);
   detections_[id] = absl::make_unique<TrackedDetection>(*detection);
 }
 
-std::vector<int> TrackedDetectionManager::UpdateDetectionLocation(
+void TrackedDetectionManager::UpdateDetectionLocation(
     int id, const NormalizedRect& bounding_box, int64 timestamp) {
   // TODO: Remove all boxes that are not updating.
   auto detection_ptr = detections_.find(id);
   if (detection_ptr == detections_.end()) {
-    return std::vector<int>();
+    return;
   }
   auto& detection = *detection_ptr->second;
   detection.set_bounding_box(bounding_box);
@@ -105,7 +109,7 @@ std::vector<int> TrackedDetectionManager::UpdateDetectionLocation(
   // fast motion, two or more detections of the same object could coexist since
   // the locations could be quite different before they are propagated to the
   // same timestamp.
-  return RemoveDuplicatedDetections(detection.unique_id());
+//  return RemoveDuplicatedDetections(detection.unique_id());
 }
 
 
@@ -179,6 +183,7 @@ std::vector<int> TrackedDetectionManager::RemoveMultipleDetections() {
   } else if(max_iou > 0.f) {
     LOG(INFO) << "max_iou: " << max_iou;
     for (auto &iou_item_: detections_iou_) {
+      LOG(INFO) <<"detection id: " << iou_item_.first <<" value: " << iou_item_.second;
       if (iou_item_.second < max_iou) {
         ids_to_remove.push_back(iou_item_.first);
       }
