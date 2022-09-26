@@ -47,7 +47,7 @@ def main(
         path_type=Path
     )
 ):
-    workdir.mkdir_p()
+    workdir.makedirs_p()
     subprocess.run([
         "bazel",
         "build",
