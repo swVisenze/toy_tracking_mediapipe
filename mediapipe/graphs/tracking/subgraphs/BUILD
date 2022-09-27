@@ -37,6 +37,21 @@ mediapipe_simple_subgraph(
 )
 
 mediapipe_simple_subgraph(
+    name = "box_tracking_cpu_viz",
+    graph = "box_tracking_cpu_viz.pbtxt",
+    register_as = "BoxTrackingVizSubgraphCpu",
+    deps = [
+        "//mediapipe/calculators/image:image_transformation_calculator",
+        "//mediapipe/calculators/video:box_tracker_calculator",
+        "//mediapipe/calculators/video:flow_packager_calculator",
+        "//mediapipe/calculators/video:motion_analysis_calculator",
+        "//mediapipe/framework/stream_handler:immediate_input_stream_handler",
+        "//mediapipe/framework/stream_handler:sync_set_input_stream_handler",
+    ],
+)
+
+
+mediapipe_simple_subgraph(
     name = "box_tracking_cpu",
     graph = "box_tracking_cpu.pbtxt",
     register_as = "BoxTrackingSubgraphCpu",
@@ -85,7 +100,7 @@ mediapipe_simple_subgraph(
         "//mediapipe/calculators/util:detections_to_timed_box_list_calculator",
         "//mediapipe/calculators/video:tracked_detection_manager_calculator",
         "//mediapipe/framework/stream_handler:sync_set_input_stream_handler",
-        "//mediapipe/graphs/tracking/subgraphs:box_tracking_cpu",
+        "//mediapipe/graphs/tracking/subgraphs:box_tracking_cpu_viz",
     ],
 )
 
