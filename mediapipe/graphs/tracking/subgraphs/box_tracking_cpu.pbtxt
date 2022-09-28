@@ -41,6 +41,10 @@ node: {
           tracking_options {
             max_features: 500
             adaptive_extraction_levels: 2
+            corner_extraction_method: EXTRACTION_FAST
+            fast_settings {
+              threshold:  20
+            }
             min_eig_val_settings {
               adaptive_lowest_quality_level: 2e-4
             }
