@@ -45,9 +45,16 @@ def main(
         writable=True,
         help="Output folder",
         path_type=Path
+    ),
+    description: str = typer.Argument(
+        ...,
+        help="Discription of the experiment"
     )
 ):
     workdir.makedirs_p()
+    with open(workdir / "report.txt", "w") as ftxt:
+        ftxt.write(description)
+
     subprocess.run([
         "bazel",
         "build",
