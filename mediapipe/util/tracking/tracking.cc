@@ -2005,6 +2005,10 @@ void MotionBox::EstimateTranslation(
     std::vector<float>* weights, Vector2_f* translation) const {
   CHECK(weights);
   CHECK(translation);
+  // motion_vectors.pos: A
+  // object_translation : x
+  // motion_vectors.object: b (objective)
+  // weights: weights of IRLS (W)
 
   const int iterations = options_.irls_iterations();
 
