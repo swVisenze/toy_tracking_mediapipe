@@ -6,6 +6,7 @@ input_stream: "VIDEO:input_video"
 input_stream: "DETECTIONS:new_detections"
 output_stream: "detections_with_id"
 output_stream: "tracked_detections"
+output_stream: "VIZ:track_viz_video"
 
 
 # Assigns an unique id for each new detection.
@@ -23,13 +24,14 @@ node {
   output_stream: "BOXES:start_pos"
 }
 
-# Subgraph that tracks boxes (see box_tracking_cpu.pbtxt).
+# Subgraph that tracks boxes (see box_tracking_cpu_viz.pbtxt).
 node {
-  calculator: "BoxTrackingSubgraphCpu"
+  calculator: "BoxTrackingVizSubgraphCpu"
   input_stream: "VIDEO:input_video"
   input_stream: "BOXES:start_pos"
   input_stream: "CANCEL_ID:cancel_object_id"
   output_stream: "BOXES:boxes"
+  output_stream: "VIZ:track_viz_video"
 }
 
 # Managers new detected objects and objects that are being tracked.
