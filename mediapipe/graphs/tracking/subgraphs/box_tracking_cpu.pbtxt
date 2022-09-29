@@ -112,7 +112,7 @@ node: {
         track_step_options {
           track_object_and_camera: true
           tracking_degrees: TRACKING_DEGREE_OBJECT_SCALE
-          inlier_spring_force: 0.0
+          inlier_spring_force: 0.3
           static_motion_temporal_ratio: 3e-2
           max_track_failures: 20
         }
