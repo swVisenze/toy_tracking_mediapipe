@@ -45,7 +45,6 @@ node {
   input_stream: "DETECTIONS:output_detections"
   output_stream: "detections_with_id"
   output_stream: "tracked_detections"
-  output_stream: "VIZ:track_viz_video"
 }
 
 # node {
@@ -69,7 +68,7 @@ node {
   node_options: {
     [type.googleapis.com/mediapipe.DetectionsToRenderDataCalculatorOptions] {
       thickness: 4.0
-      color { r: 0 g: 255 b: 0 }
+      color { r: 255 g: 0 b: 0 }
       render_detection_id: true
       render_track_id: true
       render_label: false
@@ -80,7 +79,7 @@ node {
 # Draws annotations and overlays them on top of the input images.
  node {
    calculator: "AnnotationOverlayCalculator"
-   input_stream: "IMAGE:track_viz_video"
+   input_stream: "IMAGE:input_video"
    input_stream: "tracked_detection_render_data"
   # input_stream: "detections_render_data"
    output_stream: "IMAGE:output_video"

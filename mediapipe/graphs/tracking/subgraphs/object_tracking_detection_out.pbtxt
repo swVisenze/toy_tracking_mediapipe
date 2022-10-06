@@ -6,7 +6,6 @@ input_stream: "VIDEO:input_video"
 input_stream: "DETECTIONS:new_detections"
 output_stream: "detections_with_id"
 output_stream: "tracked_detections"
-output_stream: "VIZ:track_viz_video"
 
 
 # Assigns an unique id for each new detection.
@@ -26,12 +25,11 @@ node {
 
 # Subgraph that tracks boxes (see box_tracking_cpu_viz.pbtxt).
 node {
-  calculator: "BoxTrackingVizSubgraphCpu"
+  calculator: "BoxTrackingSubgraphCpu"
   input_stream: "VIDEO:input_video"
   input_stream: "BOXES:start_pos"
   input_stream: "CANCEL_ID:cancel_object_id"
   output_stream: "BOXES:boxes"
-  output_stream: "VIZ:track_viz_video"
 }
 
 # Managers new detected objects and objects that are being tracked.
@@ -43,6 +41,13 @@ node: {
   input_stream: "TRACKING_BOXES:boxes"
   output_stream: "DETECTIONS:tracked_detections"
   output_stream: "CANCEL_OBJECT_ID:cancel_object_id"
+
+  node_options: {
+    [type.googleapis.com/mediapipe.TrackedDetectionManagerConfig] {
+      is_same_detection_max_area_ratio: 2.0
+      is_same_detection_min_overlap_ratio: 0.7
+    }
+  }
 
   input_stream_handler {
     input_stream_handler: "SyncSetInputStreamHandler"
