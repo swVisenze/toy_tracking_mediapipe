@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{07217e96-4d6d-911f-0ef4-e2c68e7909cd}</ProjectGuid>
+    <ProjectGuid>{e9dc3552-4fe5-c84a-915d-b04dd4e2c1c2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
@@ -36,214 +36,14 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/FindObject/AltUnityFindActiveObjectsByNameCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/Screenshot/AltUnityGetScreenshotCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/FindObjects/AltUnityWaitForObjectWhichContains.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/OldFindObject/AltUnityFindObjectByNameCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptDragMe.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/UnityCommands/AltUnityLoadSceneCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/OldFindObjects/AltUnityWaitForElement.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptCapsule.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/FindObjects/AltUnityFindObjectsWhichContain.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityDropObjectCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityDragObject.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/AltUnityEnableLoggingCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/ObjectCommands/AltUnityGetAllFieldsCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/AltUnityUnknowStringCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/OldFindObject/AltUnityFindObjectsWhereNameContainsCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityGetAllMethods.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/ObjectCommands/AltUnityReflectionMethodsCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/FindObject/AltUnityBaseClassFindObjectsCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnitySetMovingTouchCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/InputBuffer.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityPointerExitObject.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnityDeleteKeyPlayerPref.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/OldFindObjects/AltUnityWaitForElementWhereNameContains.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/AltUnityRunner.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/OldFindObject/AltUnityFindObjectWhereNameContainsCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityPointerUpFromObjectCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/ObjectCommands/AltUnityCallComponentMethodForObjectCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/GZipStream.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/UnityCommands/AltUnityDeleteKeyPlayerPrefCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptIncrementOnClick.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/AltUnityGetScreenshot.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/ObjectCommands/AltUnitySetObjectComponentPropertyCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityGetComponentProperty.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnityGetIntKeyPLayerPref.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/UI/AltUnityInputMark.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptDragPanel.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityScrollMouseCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/ObjectCommands/AltUnityGetAllComponentsCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnityWaitForCurrentSceneToBe.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/UI/AltUnityInputsVisualiser.cs" />
      <Compile Include="Assets/Scripts/Camera/StartStopCamera.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityClickEventCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/HuffmanTree.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/OldFindObject/AltUnityFindObjectsByNameCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/Inflater.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/UnityStruct/AltUnityTextureFormat.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/AltUnityGetServerVersionCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/UnityStruct/AltUnityKeyCode.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/IDeflater.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/FindObjects/AltUnityWaitForObject.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityDragObjectCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnityTiltAndWait.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/CompressionMode.cs" />
      <Compile Include="Assets/Scripts/ToyRecognition/ToyRecognitionHelper.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/DeflateStream.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/ObjectCommands/AltUnitySetTextCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityClickOnScreenCustom.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/AltUnityCheckServerVersion.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityClickEvent.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/FindObject/AltUnityFindAllObjectsCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptActiveStateToggler.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptPlayer2Controller.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/AltUnity/AltUnityMethodSelection.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnityMultipointSwipeAndWait.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityHoldButtonCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/OldFindObject/AltUnityFindObjectsByComponentCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/Screenshot/AltUnityHightlightObjectFromCoordinatesCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/AltUnityStopCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/AltUnity/AltUnityObjectProperty.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/AltBaseCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/AltSocket/AltResponseQueue.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityGetAllComponents.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/FindObjects/AltUnityWaitForObjectWithText.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/AltUnityMockUpPointerInputModule.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/AltUnity/AltUnityTextureInformation.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/MatchState.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/ObjectCommands/AltUnityGetComponentPropertyCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnityGetTimeScale.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/AltUnity/AltUnityObjectAction.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnitySetKeyPLayerPref.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/OldFindObjects/AltUnityFindElementsWhereNameContains.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptDebugController.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/AltUnityGetPNGScreenshot.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnitySetComponentProperty.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptCameraViewControl.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/AltUnity/AltUnityProperty.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/AltUnityCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnitySetMultipointSwipeChainCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnityGetAllScenes.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptDestroyObject.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/AltUnityTextureScale.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/InvalidDataException.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/DeflateStreamAsyncResult.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityClickOnScreenAtXyCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityGetText.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnitySetTimeScale.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/GZipUtils.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnityGetCurrentScene.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnityPressKeyAndWait.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/UnityStruct/AltUnityColor.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnityPressKey.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnityScrollMouse.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnityTapCustom.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptNextSceneButtonController.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/FindObjects/AltUnityFindObjects.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/DeflaterManaged.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/OldFindObjects/AltUnityWaitForElementWithText.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptCubeController.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/FindObject/AltUnityFindObjectsCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityActionFinishedCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/OldFindObjects/AltUnityFindElementsByComponent.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/UnityStruct/AltUnityVector.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnityGetAllCameras.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/Screenshot/AltUnityScreenshotPNGReadyCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/AltUnity/AltUnityObject.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/UI/AltPopIconDrag.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/OutputBuffer.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/InflaterState.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnitySetText.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityPointerEnterObjectCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/FindObject/AltUnityFindObjectCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/Screenshot/AltUnityHighlightSelectedObjectCommand.cs" />
      <Compile Include="Assets/Scripts/ToyRecognition/ToyFrameworkBridge.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptStarController.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityPointerEnterObject.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/GZipDecoder.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/OldFindObjects/AltUnityFindElementWhereNameContains.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityTiltCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityTap.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/FastEncoderStatics.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptDropMe.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/SR.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityGetAllProperties.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/FindObject/AltUnityGetAllCamerasCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Input.cs" />
      <Compile Include="Assets/Scripts/Camera/CameraCapture.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/AltUnity/AltUnityComponent.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnityGetFloatKeyPlayerPref.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/UnityCommands/AltUnitySetTimeScaleCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/UnityCommands/AltUnityGetTimeScaleCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityTapCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/AltSocket/AltClientSocketHandler.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/UnityCommands/AltUnityDeletePlayerPrefCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/OldFindObjects/AltUnityFindElement.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/AltUnity/AltUnityField.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/FindObjects/AltUnityFindObjectWhichContains.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityCallStaticMethods.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/FastEncoder.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnityGetStringKeyPlayerPref.cs" />
      <Compile Include="Assets/Scripts/ToyRecognition/ToyRawData.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/OutputWindow.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/FileFormats.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptStarCounter.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnityScrollMouseAndWait.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptResizePanel.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/FindObject/AltUnityGetCurrentSceneCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/AltUnityCommandReturningAltElement.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityPointerDownFromObjectCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnityTapScreen.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnitySwipeAndWait.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityPointerDownFromObject.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/Screenshot/AltUnityScreenshotReadyCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityPointerUpFromObject.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/FindObject/AltUnityGetAllScenesCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/AltUnityEnableLogging.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/AltUnity/AltUnityAxis.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/CopyEncoder.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/BlockType.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnityTilt.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityPointerExitObjectCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/UnityCommands/AltUnitySetKeyPlayerPrefCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/ObjectCommands/AltUnityGetTextCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/FastEncoderWindow.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptGameLogicController.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnityMultipointSwipe.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/FindObjects/AltUnityWaitForObjectNotBePresent.cs" />
-     <Compile Include="Assets/AltUnityTester/Examples/Scripts/AltUnityExampleScriptPanel.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/FindObjects/AltUnityGetAllElements.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/FindObjects/AltUnityFindObject.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/AltSocket/AltSocketServer.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityCallComponentMethod.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/ObjectCommands/AltUnityGetAllMethodsCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/OldFindObject/AltUnityFindObjectByComponentCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/OldFindObjects/AltUnityWaitForElementToNotBePresent.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnityLoadScene.cs" />
      <Compile Include="Assets/Scripts/StartStopApp.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/InputActions/AltUnityMoveMouseCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/ObjectCommands/AltUnityDropObject.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/UnityCommands/AltUnityDeletePlayerPref.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/OldFindObjects/AltUnityFindElements.cs" />
      <Compile Include="Assets/Scripts/Camera/CameraPermission.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnitySwipe.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnityMoveMouseAndWait.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/DeflateInput.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/AltUnityDriver.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/AltUnityExceptions.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/InputActions/AltUnityMoveMouse.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/OldFindObjects/AltUnityFindElementByComponent.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/OldFindObject/AltUnityFindObjectsOldWayCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/UnityCommands/AltUnityGetKeyPlayerPrefCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityServer/Commands/Screenshot/AltUnityGetScreenshotPNGCommand.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/Match.cs" />
-     <Compile Include="Assets/AltUnityTester/3rdParty/Unity.IO.Compression/Crc32Helper.cs" />
-     <Compile Include="Assets/AltUnityTester/AltUnityDriver/Commands/FindObjects/AltUnityBaseFindObjects.cs" />
      <None Include="Assets/mcs.rsp" />
-     <None Include="Assets/AltUnityTester/ReadMe.txt" />
-     <None Include="Assets/AltUnityTester/3rdParty/JsonDotNet/link.xml" />
-     <None Include="Assets/AltUnityTester/Shader/OutlineShader.shader" />
     <Reference Include="UnityEngine">
         <HintPath>/Applications/Unity/Hub/Editor/2021.3.1f1/Unity.app/Contents/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>
@@ -478,14 +278,11 @@
     <Reference Include="UnityEditor.UnityConnectModule">
         <HintPath>/Applications/Unity/Hub/Editor/2021.3.1f1/Unity.app/Contents/Managed/UnityEngine/UnityEditor.UnityConnectModule.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Assets/AltUnityTester/3rdParty/JsonDotNet/Assemblies/Standalone/Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Tasks">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Assets/Parse/Plugins/dotNet45/Unity.Tasks.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Assets/Parse/Plugins/dotNet45/Unity.Tasks.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Compat">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Assets/Parse/Plugins/dotNet45/Unity.Compat.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Assets/Parse/Plugins/dotNet45/Unity.Compat.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.iOS.Extensions.Xcode">
         <HintPath>/Applications/Unity/Hub/Editor/2021.3.1f1/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.Xcode.dll</HintPath>
@@ -1100,34 +897,34 @@
         <HintPath>/Applications/Unity/Hub/Editor/2021.3.1f1/Unity.app/Contents/UnityReferenceAssemblies/unity-4.8-api/Facades/netstandard.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VSCode.Editor">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro.Editor">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VisualStudio.Editor">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.VisualStudio.Editor.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.VisualStudio.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline.Editor">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
     </Reference>
     <Reference Include="Unity.PlasticSCM.Editor">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.PlasticSCM.Editor.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.PlasticSCM.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Rider.Editor">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
