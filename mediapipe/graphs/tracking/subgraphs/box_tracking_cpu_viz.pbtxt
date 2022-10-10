@@ -32,19 +32,27 @@ node: {
       analysis_options {
         analysis_policy: ANALYSIS_POLICY_CAMERA_MOBILE
         flow_options {
+          relative_min_feature_inliers: 0.2
+          min_feature_requirement: 10
           fast_estimation_min_block_size: 100
           top_inlier_sets: 1
+          pre_blur_sigma: 0.20
           frac_inlier_error_threshold: 3e-3
           downsample_mode: DOWNSAMPLE_TO_INPUT_SIZE
+          min_feature_cover: 0.1
           verification_distance: 5.0
           verify_long_feature_acceleration: true
           verify_long_feature_trigger_ratio: 0.1
           tracking_options {
+            min_feature_distance: 5
             max_features: 500
             adaptive_extraction_levels: 2
             corner_extraction_method: EXTRACTION_FAST
             fast_settings {
               threshold:  20
+            }
+            min_eig_val_settings {
+              adaptive_lowest_quality_level: 2e-4
             }
             klt_tracker_implementation: KLT_OPENCV
           }

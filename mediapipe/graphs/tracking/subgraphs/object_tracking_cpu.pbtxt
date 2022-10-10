@@ -40,6 +40,13 @@ node: {
   output_stream: "DETECTIONS:tracked_detections"
   output_stream: "CANCEL_OBJECT_ID:cancel_object_id"
 
+  node_options: {
+    [type.googleapis.com/mediapipe.TrackedDetectionManagerConfig] {
+      is_same_detection_max_area_ratio: 2.0
+      is_same_detection_min_overlap_ratio: 0.7
+    }
+  }
+
   input_stream_handler {
     input_stream_handler: "SyncSetInputStreamHandler"
     options {
