@@ -14,8 +14,8 @@ node: {
   output_stream: "IMAGE:downscaled_input_video"
   node_options: {
     [type.googleapis.com/mediapipe.ImageTransformationCalculatorOptions] {
-      output_width: 180
-      output_height: 320
+      output_width: 320
+      output_height: 180
     }
   }
 }
@@ -43,8 +43,8 @@ node: {
             max_features: 500
             adaptive_extraction_levels: 2
             corner_extraction_method: EXTRACTION_FAST
-            min_eig_val_settings {
-              adaptive_lowest_quality_level: 2e-4
+            fast_settings {
+              threshold:  20
             }
             klt_tracker_implementation: KLT_OPENCV
           }
@@ -113,7 +113,7 @@ node: {
         track_step_options {
           track_object_and_camera: true
           tracking_degrees: TRACKING_DEGREE_OBJECT_SCALE
-          inlier_spring_force: 0.0
+          inlier_spring_force: 0.3
           static_motion_temporal_ratio: 3e-2
           max_track_failures: 20
         }
