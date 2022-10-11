@@ -126,7 +126,7 @@ objc_library(
     ],
     data = [
         "//mediapipe/graphs/tracking:toy_mobile_cpu_binary_graph",
-        "//mediapipe/models:toy_detection_mobilenetv3_large075_2d_v3_portrait_v3_h6_e4.tflite",
+        "//mediapipe/models:toy_detection_mobilenetv3_large075_2d_v3_portrait_v3_d23_a5_e17.tflite",
         "//mediapipe/models:object_detection_labelmap.txt",
     ],
     sdk_frameworks = [

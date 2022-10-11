@@ -35,8 +35,8 @@ export GLOG_logtostderr=1
 # bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/object_tracking:toy_tracking_cpu
 # GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/object_tracking/toy_tracking_cpu \
 #   --calculator_graph_config_file=mediapipe/graphs/tracking/toy_detection_tracking_desktop_live.pbtxt \
-#   --input_video_path=../mediapipe_test_video/test_05_Jul/1_vd217_bg_clear.MOV \
-#   --output_video_path=../mediapipe_test_video/test_05_Jul/0_retarget/1_vd217_bg_clear
+#   --input_video_path=../mediapipe_test_video/input_e2e_portrait/VD067_A_1.mp4 \
+#   --output_video_path=../mediapipe_test_video/input_e2e_portrait_target/VD067_A_1
 
 ### toy tracking android demo app.
 #bazel build -c opt --config=android_arm64 --define MEDIAPIPE_PROFILING=1 mediapipe/examples/android/src/java/com/google/mediapipe/apps/toytrackingcpu:toytrackingcpu
@@ -46,22 +46,22 @@ export GLOG_logtostderr=1
 # adb logcat -s native | grep graph
 # adb shell "export GLOG_logtostderr=1"
 ## build toy tracking lib
-# bazel build -c opt --strip=ALWAYS \
-#     --host_crosstool_top=@bazel_tools//tools/cpp:toolchain \
-#     --fat_apk_cpu=arm64-v8a,armeabi-v7a \
-#     --legacy_whole_archive=0 \
-#     --features=-legacy_whole_archive \
-#     --copt=-fvisibility=hidden \
-#     --copt=-ffunction-sections \
-#     --copt=-fdata-sections \
-#     --copt=-fstack-protector \
-#     --copt=-Oz \
-#     --copt=-fomit-frame-pointer \
-#     --copt=-DABSL_MIN_LOG_LEVEL=2 \
-#     --linkopt=-Wl,--gc-sections,--strip-all \
-#     //mediapipe/java/com/visenze:mediapipe_toy_tracking.aar
+ bazel build -c opt --strip=ALWAYS \
+     --host_crosstool_top=@bazel_tools//tools/cpp:toolchain \
+     --fat_apk_cpu=arm64-v8a,armeabi-v7a \
+     --legacy_whole_archive=0 \
+     --features=-legacy_whole_archive \
+     --copt=-fvisibility=hidden \
+     --copt=-ffunction-sections \
+     --copt=-fdata-sections \
+     --copt=-fstack-protector \
+     --copt=-Oz \
+     --copt=-fomit-frame-pointer \
+     --copt=-DABSL_MIN_LOG_LEVEL=2 \
+     --linkopt=-Wl,--gc-sections,--strip-all \
+     //mediapipe/java/com/visenze:mediapipe_toy_tracking.aar
 
-bazel build -c opt --config=ios_arm64 mediapipe/examples/ios/objectdetectioncpu:ToyTrackingFramework
+#bazel build -c opt --config=ios_arm64 mediapipe/examples/ios/objectdetectioncpu:ToyTrackingFramework
 
 #bazel build --copt=-fembed-bitcode --apple_bitcode=embedded --config=ios_arm64 mediapipe/examples/ios/objectdetectioncpu:ToyTrackingFramework
 
