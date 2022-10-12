@@ -13,14 +13,14 @@ public class CameraCapture : MonoBehaviour
     // callback registration 
     public event OnCaptureTexture onCaptureTexture;
     // webcam texture to use as reference to capture
-    private WebCamTexture cameraTexture = null;
+    private Texture2D cameraTexture = null;
     // cached copy of the webcam texture we capture
     private Texture2D cachedTex2D = null;
     // temporary render texture to perform graphics blit from
     private RenderTexture cachedRenderTex = null;
 
     // Getter/setter for which WebCamTexture we are referencing to 
-    public WebCamTexture CameraTexture
+    public Texture2D CameraTexture
     {
         get { return cameraTexture; }
         set { cameraTexture = value; }
@@ -42,8 +42,8 @@ public class CameraCapture : MonoBehaviour
         // int adjustedHeight = IMAGE_SIZE; 
         int adjustedWidth = cameraTexture.width / 2;
         int adjustedHeight = cameraTexture.height / 2; 
-        // Debug.Log("camera texture adjustedWidth: "+ adjustedWidth);
-        // Debug.Log("camera texture adjustedHeight: "+ adjustedHeight);
+        Debug.Log("camera texture adjustedWidth: "+ adjustedWidth);
+        Debug.Log("camera texture adjustedHeight: "+ adjustedHeight);
 
 #if UNITY_ANDROID
         if (!cachedTex2D)

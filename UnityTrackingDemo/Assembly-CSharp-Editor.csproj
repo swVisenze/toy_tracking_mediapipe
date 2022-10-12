@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{ecb60744-beea-c50f-24be-06c01afc34b8}</ProjectGuid>
+    <ProjectGuid>{119d23fd-0731-caaf-2ee7-dcea8d266f17}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp-Editor</AssemblyName>
@@ -313,28 +313,28 @@
         <HintPath>/Applications/Unity/Hub/Editor/2021.3.1f1/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Plastic.Newtonsoft.Json">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/PackageCache/com.unity.collab-proxy@1.15.16/Lib/Editor/PlasticSCM/Unity.Plastic.Newtonsoft.Json.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/PackageCache/com.unity.collab-proxy@1.15.16/Lib/Editor/PlasticSCM/Unity.Plastic.Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Assets/AltUnityTester/3rdParty/JsonDotNet/Assemblies/Standalone/Newtonsoft.Json.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Assets/AltUnityTester/3rdParty/JsonDotNet/Assemblies/Standalone/Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Plastic.Antlr3.Runtime">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/PackageCache/com.unity.collab-proxy@1.15.16/Lib/Editor/PlasticSCM/Unity.Plastic.Antlr3.Runtime.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/PackageCache/com.unity.collab-proxy@1.15.16/Lib/Editor/PlasticSCM/Unity.Plastic.Antlr3.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Tasks">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Assets/Parse/Plugins/dotNet45/Unity.Tasks.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Assets/Parse/Plugins/dotNet45/Unity.Tasks.dll</HintPath>
     </Reference>
     <Reference Include="log4netPlastic">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/PackageCache/com.unity.collab-proxy@1.15.16/Lib/Editor/PlasticSCM/log4netPlastic.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/PackageCache/com.unity.collab-proxy@1.15.16/Lib/Editor/PlasticSCM/log4netPlastic.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Compat">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Assets/Parse/Plugins/dotNet45/Unity.Compat.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Assets/Parse/Plugins/dotNet45/Unity.Compat.dll</HintPath>
     </Reference>
     <Reference Include="unityplastic">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/PackageCache/com.unity.collab-proxy@1.15.16/Lib/Editor/PlasticSCM/unityplastic.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/PackageCache/com.unity.collab-proxy@1.15.16/Lib/Editor/PlasticSCM/unityplastic.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/PackageCache/com.unity.ext.nunit@1.0.6/net35/unity-custom/nunit.framework.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/PackageCache/com.unity.ext.nunit@1.0.6/net35/unity-custom/nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.iOS.Extensions.Xcode">
         <HintPath>/Applications/Unity/Hub/Editor/2021.3.1f1/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.Xcode.dll</HintPath>
@@ -949,45 +949,45 @@
         <HintPath>/Applications/Unity/Hub/Editor/2021.3.1f1/Unity.app/Contents/UnityReferenceAssemblies/unity-4.8-api/Facades/netstandard.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TestRunner">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/UnityEngine.TestRunner.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/UnityEngine.TestRunner.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.TestRunner">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/UnityEditor.TestRunner.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/UnityEditor.TestRunner.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VSCode.Editor">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro.Editor">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VisualStudio.Editor">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.VisualStudio.Editor.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.VisualStudio.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline.Editor">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
     </Reference>
     <Reference Include="Unity.PlasticSCM.Editor">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.PlasticSCM.Editor.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.PlasticSCM.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Rider.Editor">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-        <HintPath>/Users/siwei/Desktop/proj/ferrero/mobile-inference-engine/demo/Unity/appDemo/ToyRecognitionDemo/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
+        <HintPath>/Users/siwei/Desktop/proj/ai/mediapipe/UnityTrackingDemo/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp.csproj">
-      <Project>{07217e96-4d6d-911f-0ef4-e2c68e7909cd}</Project>
+      <Project>{e9dc3552-4fe5-c84a-915d-b04dd4e2c1c2}</Project>
       <Name>Assembly-CSharp</Name>
     </ProjectReference>
   </ItemGroup>

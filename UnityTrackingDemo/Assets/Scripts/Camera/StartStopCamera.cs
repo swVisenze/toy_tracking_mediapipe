@@ -30,7 +30,7 @@ public class StartStopCamera : MonoBehaviour
     // camera permission
     private CameraPermission camPerm = null;
     // camera capture
-    private CameraCapture camCap = null;
+    // private CameraCapture camCap = null;
     // front cam
     private WebCamTexture frontCam = null;
     // back cam
@@ -50,6 +50,14 @@ public class StartStopCamera : MonoBehaviour
     private AspectRatioFitter fit = null;
     // our final rendered texture for presentation
     private Texture2D webcamTex = null;
+
+    private Texture2D displayTex = null; 
+
+    // cached copy of the webcam texture we capture
+    private Texture2D cachedTex2D = null;
+    // temporary render texture to perform graphics blit from
+    private RenderTexture cachedRenderTex = null;
+
     // last known detected box in texture space (captureWidth, capturedHeight)
     public float[] coordPoints = null; 
 
@@ -59,6 +67,8 @@ public class StartStopCamera : MonoBehaviour
 
     public int cameraWidth = 1280;
     public int cameraHeight = 720;
+
+    private Quaternion baseRotation; 
 
     #region MonoBehaviour 
 
@@ -78,15 +88,17 @@ public class StartStopCamera : MonoBehaviour
 
     private void Awake()
     {
-
-
         // acquire dependency references
         camPerm = GetComponent<CameraPermission>();
-        camCap = GetComponent<CameraCapture>();
+        // camCap = GetComponent<CameraCapture>();
         if (background != null)
         {
             fit = background.GetComponent<AspectRatioFitter>();
         }
+    }
+
+    private void Start() {
+        baseRotation = background.gameObject.transform.rotation;
     }
 
     private void Update()
@@ -114,26 +126,89 @@ public class StartStopCamera : MonoBehaviour
         if (background != null)
         {
             // post processing for drawing detected bounding box's center point
-            webcamTex = AllocateWebcamTex();
 
-            webcamTex.SetPixels32(GetWebcamPixels(), 0);
+            webcamTex = AllocateWebcamTex();
+            webcamTex.SetPixels32(GetWebcamPixels(false), 0);            
+            webcamTex.Apply();            
+
+            displayTex = AllocateDisplayTex();
+            Graphics.CopyTexture(webcamTex, displayTex); 
+        
+
             if(coordPoints != null && coordPoints.Length == 4) {
                 int targetWidth = webcamTex.width;
                 int targetHeight = webcamTex.height; 
                 // Debug.Log("ProcessFrame targetWidth: " + targetWidth);
                 // Debug.Log("ProcessFrame targetHeight: " + targetHeight);
                 int[] boxPoints = cal2dBoxPoints(coordPoints, targetWidth, targetHeight);
-                Draw2DBox(webcamTex, boxPoints);
+                Draw2DBox(displayTex, boxPoints);
             }
 
-            webcamTex.Apply();
-            background.texture = webcamTex;
+            displayTex.Apply();            
+            background.texture = displayTex;
+            // int rotateAngle = -1 * backCam.videoRotationAngle;
+            // Debug.Log("rotateAngle: " + rotateAngle);
+            // background.gameObject.transform.rotation = baseRotation * Quaternion.AngleAxis(rotateAngle, Vector3.forward);
         }
     }
 
 #endregion
 
 #region Public Functions
+
+    public Texture2D GetScreenShotTexure() {
+        Texture texToCapture = webcamTex;
+        // int adjustedWidth = IMAGE_SIZE;
+        // int adjustedHeight = IMAGE_SIZE; 
+        int adjustedWidth = texToCapture.width / 2;
+        int adjustedHeight = texToCapture.height / 2; 
+        Debug.Log("camera texture adjustedWidth: "+ adjustedWidth);
+        Debug.Log("camera texture adjustedHeight: "+ adjustedHeight);
+
+#if UNITY_ANDROID
+        if (!cachedTex2D)
+        {
+            cachedTex2D = new Texture2D(adjustedWidth, adjustedHeight, TextureFormat.RGB24, false);
+            cachedRenderTex = RenderTexture.GetTemporary(adjustedWidth, adjustedHeight);
+        }
+
+        cachedRenderTex.filterMode = FilterMode.Point;
+        // back-up the original active render texture
+        RenderTexture currRt = RenderTexture.active;
+
+        Graphics.Blit(texToCapture, cachedRenderTex, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
+
+        // if (cameraTexture.videoVerticallyMirrored) {
+        //     // Debug.Log("cameraTexture.videoVerticallyMirrored");
+        //     Graphics.Blit(texToCapture, cachedRenderTex, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
+        // } else {
+        //     // Debug.Log("cameraTexture. not flipped");
+        //     Graphics.Blit(texToCapture, cachedRenderTex);
+        // }        
+#else 
+        if (!cachedTex2D)
+        {
+            cachedTex2D = new Texture2D(adjustedWidth, adjustedHeight, TextureFormat.RGB24, false);
+            cachedRenderTex = RenderTexture.GetTemporary(adjustedWidth, adjustedHeight);
+        }
+
+        cachedRenderTex.filterMode = FilterMode.Point;
+        // back-up the original active render texture
+        RenderTexture currRt = RenderTexture.active;
+
+        Graphics.Blit(texToCapture, cachedRenderTex, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
+        // Graphics.Blit(texToCapture, cachedRenderTex);
+#endif        
+        // set the temp buffer as the active render texture
+        RenderTexture.active = cachedRenderTex;
+
+        // get the cached camera texture to read from the current active render texture
+        cachedTex2D.ReadPixels(new Rect(0, 0, adjustedWidth, adjustedHeight), 0, 0);
+        cachedTex2D.Apply();
+        RenderTexture.active = currRt;
+        return cachedTex2D;
+    }
+
 
     /// <summary>
     /// Attempts to toggle from front camera to back camera, and vice-versa. 
@@ -220,7 +295,7 @@ public class StartStopCamera : MonoBehaviour
             return;
         }
 
-        // get the first front and back facing cameras only
+
         for (int i = 0; i < devices.Length; i++)
         {
             if (devices[i].isFrontFacing)
@@ -258,22 +333,6 @@ public class StartStopCamera : MonoBehaviour
 #region Private Helper Functions
 
     /// <summary>
-    /// Store the latest Capture's texture's width and height
-    /// </summary>
-    /// <param name="tex">
-    /// The teture2D that was captured by CameraCapture script
-    /// </param>
-    // private void OnCaptureTexture(Texture2D tex)
-    // {
-    //     capturedWidth = tex.width;
-    //     capturedHeight = tex.height;
-    //     //background.texture = tex;
-
-    //     Debug.Log("startstop camera capturedWidth: "+ capturedWidth);
-    //     Debug.Log("startstop camera capturedHeight: "+ capturedHeight);
-    // }
-
-    /// <summary>
     /// Attempt to allocate a local Texture2D for performing pixel manipulation
     /// </summary>
     /// <returns>
@@ -294,6 +353,12 @@ public class StartStopCamera : MonoBehaviour
                 backCam.height :
                 0;
 
+        // if (webcamTex != null) {
+        //     return webcamTex; 
+        // }
+        // return new Texture2D(h, w, TextureFormat.RGB24, false);
+        // return new Texture2D(w, h, TextureFormat.RGBA32, false);
+
         // early out on no texture size changes
         if (webcamTex != null)
         {
@@ -301,10 +366,43 @@ public class StartStopCamera : MonoBehaviour
                 return webcamTex;
             // deallocate
             else
+                Debug.Log("Allocate new webcam texture");
                 UnityEngine.Object.Destroy(webcamTex);
         }
         // allocate
-        return new Texture2D(w, h, TextureFormat.BGRA32, false);
+        return new Texture2D(w, h, TextureFormat.RGB24, false);
+    }
+
+    private Texture2D AllocateDisplayTex () {
+        int w = IsFrontCamera ?
+                frontCam.width :
+                IsBackCamera ?
+                backCam.width :
+                0;
+
+        int h = IsFrontCamera ?
+                frontCam.height :
+                IsBackCamera ?
+                backCam.height :
+                0;
+
+        // if (displayTex != null) {
+        //     return displayTex; 
+        // }
+        // return new Texture2D(h, w, TextureFormat.RGB24, false);
+
+        if (displayTex != null)
+        {
+            if (displayTex.width == w && displayTex.height == h)
+                return displayTex;
+            // deallocate
+            else
+                Debug.Log("Allocate new display texture");            
+                UnityEngine.Object.Destroy(displayTex);
+        }
+        // allocate
+        return new Texture2D(w, h, TextureFormat.RGB24, false);
+
     }
 
     /// <summary>
@@ -313,13 +411,27 @@ public class StartStopCamera : MonoBehaviour
     /// <returns>
     /// An array of Color32 values representing the entire color buffer
     /// </returns>
-    private Color32[] GetWebcamPixels()
+    private Color32[] GetWebcamPixels(bool flipped)
     {
-        return IsFrontCamera ?
+        int w = IsFrontCamera ?
+                frontCam.width :
+                IsBackCamera ?
+                backCam.width :
+                0;
+
+        int h = IsFrontCamera ?
+                frontCam.height :
+                IsBackCamera ?
+                backCam.height :
+                0;               
+
+        Color32[] color32Pixels = IsFrontCamera ?
                frontCam.GetPixels32() :
                IsBackCamera ?
                backCam.GetPixels32() :
                null;
+
+        return color32Pixels;
     }
 
     /// <summary>
@@ -351,7 +463,6 @@ public class StartStopCamera : MonoBehaviour
             usingCamera = UsingCamera.Front;
             if (!frontCam.isPlaying)
                 frontCam.Play();
-            camCap.CameraTexture = frontCam;
         }
     }
 
@@ -367,7 +478,6 @@ public class StartStopCamera : MonoBehaviour
             usingCamera = UsingCamera.Back;
             if (!backCam.isPlaying)
                 backCam.Play();
-            camCap.CameraTexture = backCam;
         }
     }
 

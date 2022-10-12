@@ -23,6 +23,8 @@ public class StartStopApp : MonoBehaviour
     public Text toggleText = null;
     [Tooltip("Text to display result of the last received scan")]
     public Text result = null;
+    [Tooltip("Buffer frame input")]
+    public InputField bufferFrameInput = null;
     [Tooltip("Text to display accumulated time so far since start of scan")]
     public Text latency = null;
     [Tooltip("Dependency script to process rendering of camera texture with dot")]
@@ -32,7 +34,7 @@ public class StartStopApp : MonoBehaviour
     [Tooltip("The close button to disable when scanning")]
     public Button closeButton = null;
     // camera capture
-    private CameraCapture cameraCapture = null;
+    // private CameraCapture cameraCapture = null;
     // camera permission
     private CameraPermission cameraPermission = null;
     // multithreaded variable to image data
@@ -68,7 +70,7 @@ public class StartStopApp : MonoBehaviour
     private void Awake()
     {
         // get dependency scripts references
-        cameraCapture = startStopCamera.GetComponent<CameraCapture>();
+        // cameraCapture = startStopCamera.GetComponent<CameraCapture>();
         cameraPermission = startStopCamera.GetComponent<CameraPermission>();
     }
 
@@ -90,6 +92,8 @@ public class StartStopApp : MonoBehaviour
         // black to indicate camera not ready
         if (indicator != null)
             indicator.color = Color.black;
+        if (bufferFrameInput != null) 
+            bufferFrameInput.text = "20";
     }
 
     private void Update()
@@ -102,7 +106,8 @@ public class StartStopApp : MonoBehaviour
 
 
         timer += Time.deltaTime;
-        Texture2D tex = cameraCapture.GetImageTexure(); 
+        // Texture2D tex = cameraCapture.GetImageTexure(); 
+        Texture2D tex = startStopCamera.GetScreenShotTexure();
 
         // sdkImageWidth = cameraCapture.CameraTexture.width; 
         // sdkImageHeight = cameraCapture.CameraTexture.height; 
@@ -117,8 +122,9 @@ public class StartStopApp : MonoBehaviour
             // sdkImageWidth = cameraCapture.CameraTexture.width; 
             // sdkImageHeight = cameraCapture.CameraTexture.height; 
             
-            sdkImageWidth = tex.width;  // 256
-            sdkImageHeight = tex.height; // 256
+            sdkImageWidth = tex.width;  
+            sdkImageHeight = tex.height; 
+
 
             Debug.Log("sdkImageWidth: "+ sdkImageWidth);
             Debug.Log("sdkImageHeight: "+ sdkImageHeight);
@@ -130,6 +136,7 @@ public class StartStopApp : MonoBehaviour
 
 
             NativeArray<byte> rawTextureData = tex.GetRawTextureData<byte>();
+            // Debug.Log("rawTextureData size " + rawTextureData.Length); 
             rawTextureData.CopyTo(imageRawData);
             sdkResult = ToyFrameworkBridge.framework_recognize(imageRawData, sdkImageDataSize, sdkImageWidth, sdkImageHeight);                
         #endif
@@ -205,13 +212,26 @@ public class StartStopApp : MonoBehaviour
             toggleText.text = isRunning ? "Stop" : "Start";
         if (indicator != null)
             indicator.color = isRunning ? Color.yellow : Color.green;
+
         if (isRunning) {
             timer = 0.0f;
             initFrame = true;
             // cameraCapture.CaptureTexture();            
             // refresh reset.            
-            ToyFrameworkBridge.framework_refresh(25);            
-            
+            string input = bufferFrameInput.text;
+            int inputNumber = 20; 
+            bool isNumeric = Int32.TryParse(input, out inputNumber); 
+            // if(isNumeric) {
+            //     Debug.Log("bufferFrameInput: " + inputNumber);
+            // }
+            ToyFrameworkBridge.framework_refresh(inputNumber);                        
+        }
+
+        if (bufferFrameInput != null) {
+            bufferFrameInput.gameObject.SetActive(!isRunning);
+        }        
+        if (latency != null) {
+            latency.gameObject.SetActive(!isRunning); 
         }
 
         if (closeButton != null)
