@@ -16,9 +16,9 @@
 		<data>
 		UqPkfFj/TwEQl32p6mKD3YxuDMU=
 		</data>
-		<key>toy_detection_mobilenetv3_large075_2d_v3_portrait_v3_d23_a5_e17.tflite</key>
+		<key>toy_detection_mobilenetv3_large075_2d_v3_landscape_v3_d23_a5_v2_e20.tflite</key>
 		<data>
-		9veLhyq2F6NOFvS4B65j0YwcNfU=
+		6YlHfdomLdZS+cNh+YhaNj1DJIo=
 		</data>
 		<key>toy_mobile_cpu.binarypb</key>
 		<data>
@@ -41,11 +41,11 @@
 			6+Fje0N6xiTZFXqhffNKMA7M/mW1qJImzypHvhObIYE=
 			</data>
 		</dict>
-		<key>toy_detection_mobilenetv3_large075_2d_v3_portrait_v3_d23_a5_e17.tflite</key>
+		<key>toy_detection_mobilenetv3_large075_2d_v3_landscape_v3_d23_a5_v2_e20.tflite</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			by1wf7g28DIWgPumOtxruXMjE5NR1VG6alT/ykP5CvQ=
+			BrWTDuhYjBhT4DZlb2jK/LMSR8GwG+f0+2C/tC1/w8g=
 			</data>
 		</dict>
 		<key>toy_mobile_cpu.binarypb</key>
