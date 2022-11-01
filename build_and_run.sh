@@ -61,7 +61,7 @@ export GLOG_logtostderr=1
 #     --linkopt=-Wl,--gc-sections,--strip-all \
 #     //mediapipe/java/com/visenze:mediapipe_toy_tracking.aar
 
-bazel build -c opt --config=ios_arm64 mediapipe/examples/ios/objectdetectioncpu:ToyTrackingFramework
+bazel build -c opt --config=ios_arm64 mediapipe/examples/ios/objectdetectioncpu:ToyTrackingFramework --verbose_failures
 
 #bazel build --copt=-fembed-bitcode --apple_bitcode=embedded --config=ios_arm64 mediapipe/examples/ios/objectdetectioncpu:ToyTrackingFramework
 
