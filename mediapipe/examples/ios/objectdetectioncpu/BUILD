@@ -98,7 +98,7 @@ ios_framework(
     hdrs = [
         "UnityBridge.h"
     ],
-    bundle_id="com.visenze.tracking.demo",
+    bundle_id = "com.visenze.tracking.demo",
     provisioning_profile = "toy_tracking.mobileprovision",
     bundle_name = "ToyTracking",
     families = ["iphone", "ipad"],
