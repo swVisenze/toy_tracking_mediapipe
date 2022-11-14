@@ -45,7 +45,9 @@ std::unique_ptr<mediapipe::CalculatorGraph> graph;
 std::unique_ptr<mediapipe::OutputStreamPoller> poller;
 
 - (void)loadGraph:(int) width height: (int) height {
-
+    // Temp way to turn on/off loggings from mediapipe
+    // set it to 100 to turn off.
+    FLAGS_minloglevel = -1;
     image_width = width;
     image_height = height;
     NSBundle* bundle = [NSBundle bundleForClass:[self class]];
@@ -55,19 +57,22 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     NSData* data = [NSData dataWithContentsOfURL:graphURL options:0 error:&configLoadError];
     if (!data) {
         NSLog(@"Failed to load MediaPipe graph config: %@", configLoadError);
+        const char *errorMessage = [[configLoadError localizedDescription]
+                                    cStringUsingEncoding: NSISOLatin1StringEncoding];
+        LOG(ERROR) << "Failed to load MediaPipe graph config" << errorMessage;
         return;
     }
 
     // Parse the graph config resource into mediapipe::CalculatorGraphConfig proto object.
 //    mediapipe::CalculatorGraphConfig config;
     if(!graph_config.ParseFromArray(data.bytes, data.length)) {
-        LOG(INFO) <<"graph config parse failed!!!";
+        LOG(ERROR) <<"graph config parse failed!!!";
         return;
     }
 }
 
 - (void)destroy {
-//    LOG(INFO) <<"ToyTracking: toy_tracking_destroy ";
+    LOG(INFO) << "TrackingiOSSDK: toy_tracking_destroy ";
     image_width = 0;
     image_height = 0;
     is_graph_running = false;
@@ -87,20 +92,17 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     if(is_graph_running) {
         is_graph_running = false;
         absl::Status status = graph->CloseAllInputStreams();
-//        LOG(INFO) << "CloseAllInputStreams";
-//            auto waitDoneStatus = graph->WaitUntilDone();
-//            LOG(INFO) << "wait until done: "<<waitDoneStatus.ok();
         graph->Cancel();
-//        LOG(INFO) << "graph cancelled";
+        LOG(INFO) << "TrackingiOSSDK: graph cancelled";
         poller.reset(nullptr);
     }
     obj_id = -1;
     cur_time_us = 1;
     lost_frames = 0;
     graph.reset(new mediapipe::CalculatorGraph());
-//    LOG(INFO) <<"graph reset with new object";
+    LOG(INFO) <<"TrackingiOSSDK: graph reset with new object";
     absl::Status status = graph->Initialize(graph_config);
-//    LOG(INFO) <<"graph initialized: "<< status.ok();
+    LOG(INFO) <<"TrackingiOSSDK: graph initialized: "<< status.ok();
     absl::StatusOr<mediapipe::OutputStreamPoller> result = graph->AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME);
     if(result.ok()) {
         poller = std::make_unique<mediapipe::OutputStreamPoller>(std::move(result.value()));
@@ -108,7 +110,7 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
 //        LOG(INFO) <<"add poller";
         absl::Status status = graph->StartRun({});
         is_graph_running = status.ok();
-//        LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
+        LOG(INFO) << "TrackingiOSSDK: StartRunningGraph running: " << is_graph_running;
         return is_graph_running;
     } else {
         return false;
@@ -121,10 +123,10 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
         return @"";
     }
 
-//    LOG(INFO) << "width: " << width << " height: "<< height << " size: " << size;
+    LOG(INFO) << "TrackingiOSSDK: Buffer info: width: " << width << " height: "<< height << " size: " << size;
     const int expected_buffer_size = width * height * 3;
     if (size != expected_buffer_size) {
-        LOG(INFO) << "unmatched size, expected size: " << expected_buffer_size;
+        LOG(ERROR) << "unmatched size, expected size: " << expected_buffer_size;
         return @"";
     }
     // create image frame, format RGBA
@@ -137,13 +139,13 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
 
     cur_time_us = cur_time_us + time_gap_us;
     mediapipe::Packet packet = mediapipe::Adopt(image_frame.release()).At(mediapipe::Timestamp(cur_time_us));
-//    LOG(INFO) << "input frame_timestamp_us: " << cur_time_us;
+    LOG(INFO) << "TrackingiOSSDK: input frame_timestamp_us: " << cur_time_us;
     // send packet to graph
     graph->AddPacketToInputStream(INPUT_VIDEO_STREAM_NAME, packet);
 
     mediapipe::Packet output_packet;
     if (!poller->Next(&output_packet)) {
-        LOG(INFO) << "cannot get output packet";
+        LOG(ERROR) << "TrackingiOSSDK: cannot get output packet";
         return @"";
     }
 
@@ -173,20 +175,22 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
             }
         }
         auto& detection = out_detections[detection_index];
-//        LOG(INFO) << "out detections: "<<out_detections.size();
-//        for(int i=0; i< out_detections.size(); i++) {
-//            LOG(INFO) << "out detection: "<< i <<" object id: "<< out_detections[i].detection_id();
-//        }
+        LOG(INFO) << "TrackingiOSSDK: number of out detections: "<<out_detections.size();
+        for(int i=0; i< out_detections.size(); i++) {
+            LOG(INFO) << "TrackingiOSSDK: out detection: " << i
+                      << " object id: "<< out_detections[i].detection_id();
+        }
 
         auto& relative_bbox = detection.location_data().relative_bounding_box();
         float min_x = relative_bbox.xmin();
         float min_y = relative_bbox.ymin();
-//        LOG(INFO) <<"min_x: "<< min_x << " min_y: "<<min_y;
         float max_x = min_x + relative_bbox.width();
         float max_y = min_y + relative_bbox.height();
-//        LOG(INFO) <<"max_x: "<< max_x << " max_y: "<<max_y;
 
-        track_box = std::to_string(min_x) + "," + std::to_string(min_y) + ";" + std::to_string(max_x) + "," + std::to_string(max_y);
+        track_box = std::to_string(min_x)
+                + "," + std::to_string(min_y)
+                + ";" + std::to_string(max_x)
+                + "," + std::to_string(max_y);
         debug_message = detection.track_id();
     } else {
         if(obj_id > 0) {
@@ -202,13 +206,12 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
         track_box = "";
         debug_message = "NO DETECTION OUTPUT";
     }
-//    LOG(INFO) <<"obj_id: "<< obj_id;
     auto jsonObj = JSON::object();
     jsonObj["status"] = status;
     jsonObj["track_box"] = track_box;
     jsonObj["debug_message"] = debug_message;
     std::string jsonStr = jsonObj.dump();
-//    LOG(INFO) <<"json output: "<< jsonStr;
+    LOG(INFO) <<"TrackingiOSSDK: json output: "<< jsonStr;
 
     NSString* result = [NSString stringWithUTF8String:jsonStr.c_str()];
     return result;
