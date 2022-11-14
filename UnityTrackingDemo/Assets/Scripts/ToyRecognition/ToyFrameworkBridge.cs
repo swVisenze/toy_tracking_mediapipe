@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Runtime.InteropServices;
-using AOT;
+﻿using System.Runtime.InteropServices;
 using UnityEngine;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
-using System.Collections.Generic;
 
 public class ToyFrameworkBridge : MonoBehaviour
 {
@@ -37,27 +33,24 @@ public class ToyFrameworkBridge : MonoBehaviour
     public static void toy_tracking_init(int width, int height) {
         using (AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer")) {
             using (AndroidJavaObject unityActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity")) {
-                // trackingInstance = new AndroidJavaObject("com.visenze.ToyTracking", unityActivity);
                 toyTrackingClass.CallStatic("init", unityActivity, width, height);
             }
         }
     }
 
     public static void toy_tracking_destroy() {
-        // trackingInstance.Call("close");
-        // toy_tracking_destroy();
         toyTrackingClass.CallStatic("destroy");
     }
-
-
 #endif 
+
+
     public static void framework_refresh(int buffer_frames)
     {
-        Debug.Log("framework_refresh");
+        Debug.Log("TrackingUnityDemo: Refresh Tracking Framework");
 #if UNITY_IOS
         if (Application.platform == RuntimePlatform.IPhonePlayer)
         {
-            Debug.Log("IOS framework_refresh");
+            Debug.Log("TrackingUnityDemo: Calling refresh from iOS SDK");
             native_toy_tracking_reset(buffer_frames);
         }
 #endif     
@@ -65,7 +58,7 @@ public class ToyFrameworkBridge : MonoBehaviour
 #if UNITY_ANDROID
         if (Application.platform == RuntimePlatform.Android)
         {
-            Debug.Log("ANDROID framework_refresh");
+            Debug.Log("TrackingUnityDemo: Calling refresh from Android SDK");
             toy_tracking_reset(buffer_frames);
         }
 #endif
@@ -74,11 +67,11 @@ public class ToyFrameworkBridge : MonoBehaviour
 
     public static void framework_init(int width, int height)
     {
-        Debug.Log("framework_init");
+        Debug.Log("TrackingUnityDemo: Initialize Tracking Framework");
 #if UNITY_IOS
         if (Application.platform == RuntimePlatform.IPhonePlayer)
         {
-            Debug.Log("IOS framework_init");
+            Debug.Log("TrackingUnityDemo: Calling init from iOS SDK");
             native_toy_tracking_init(width, height);
         }
 #endif
@@ -86,7 +79,7 @@ public class ToyFrameworkBridge : MonoBehaviour
 #if UNITY_ANDROID
         if (Application.platform == RuntimePlatform.Android)
         {
-            Debug.Log("ANDROID framework_init");
+            Debug.Log("TrackingUnityDemo: Calling init from Android SDK");
             toy_tracking_init(width, height);
         }
 #endif
@@ -97,7 +90,7 @@ public class ToyFrameworkBridge : MonoBehaviour
 #if UNITY_IOS
         if (Application.platform == RuntimePlatform.IPhonePlayer)
         {
-            Debug.Log("IOS framework_terminate");
+            Debug.Log("TrackingUnityDemo: Calling desktroy from iOS SDK");
             native_toy_tracking_destroy();
         }
 #endif
@@ -105,7 +98,7 @@ public class ToyFrameworkBridge : MonoBehaviour
 #if UNITY_ANDROID
         if (Application.platform == RuntimePlatform.Android)
         {
-            Debug.Log("ANDROID framework_terminate");
+            Debug.Log("TrackingUnityDemo: Calling desktroy from Android SDK");
             toy_tracking_destroy();
         }
 #endif
@@ -118,7 +111,7 @@ public class ToyFrameworkBridge : MonoBehaviour
         {
             Stopwatch st = new Stopwatch();
             st.Start();
-            Debug.Log("IOS framework_recognize");
+            Debug.Log("TrackingUnityDemo: Calling tracking from iOS SDK");
             string result = native_toy_tracking_tracking(buffer, size, width, height);
             st.Stop();
             Debug.Log(string.Format("Recognize API E2E Time Taken {0} seconds", st.ElapsedMilliseconds/1000.0));
@@ -129,11 +122,9 @@ public class ToyFrameworkBridge : MonoBehaviour
 #if UNITY_ANDROID
         if (Application.platform == RuntimePlatform.Android)
         {
-            Debug.Log("ANDROID framework_recognize");
-
+            Debug.Log("TrackingUnityDemo: Calling tracking from Android SDK");
             Stopwatch st = new Stopwatch();
             st.Start();
-
             System.IntPtr output_pointer = toy_tracking_tracking(buffer, size, width, height);
             string result = Marshal.PtrToStringAnsi(output_pointer);
             st.Stop();
@@ -142,7 +133,7 @@ public class ToyFrameworkBridge : MonoBehaviour
         }
 #endif
 
-        Debug.Log("recognizing skipped - return");
+        Debug.LogError("TrackingUnityDemo: No valid platform is found");
         return null;
     }
 }

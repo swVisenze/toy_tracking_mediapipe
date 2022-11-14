@@ -118,29 +118,24 @@ public class StartStopApp : MonoBehaviour
             Thread.Sleep(20); 
             // sdkResult="{\"landmark_2d\": \"364,145;295,129;313,100;377,113;372,77;299,63;316,38;384,50;\"}";
             sdkResult = "{\"debug_message\":\"3_prev_id_1\",\"status\":\"tracking\",\"track_box\":\"0.452927,0.310548;0.626055,0.580231\"}";
-        #else
-            // sdkImageWidth = cameraCapture.CameraTexture.width; 
-            // sdkImageHeight = cameraCapture.CameraTexture.height; 
+#else
             
             sdkImageWidth = tex.width;  
             sdkImageHeight = tex.height; 
 
+            Debug.Log("TrackingUnityDemo: sdkImageWidth : "+ sdkImageWidth);
+            Debug.Log("TrackingUnityDemo: sdkImageHeight: "+ sdkImageHeight);
 
-            Debug.Log("sdkImageWidth: "+ sdkImageWidth);
-            Debug.Log("sdkImageHeight: "+ sdkImageHeight);
-
-            if(imageRawData == null) {
+            if (imageRawData == null) {
                 sdkImageDataSize = sdkImageWidth*sdkImageHeight*3; // rgb24 format
                 imageRawData = new byte[sdkImageDataSize];  
             }
 
-
             NativeArray<byte> rawTextureData = tex.GetRawTextureData<byte>();
-            // Debug.Log("rawTextureData size " + rawTextureData.Length); 
             rawTextureData.CopyTo(imageRawData);
             sdkResult = ToyFrameworkBridge.framework_recognize(imageRawData, sdkImageDataSize, sdkImageWidth, sdkImageHeight);                
-        #endif
-        Debug.Log("sdk Result: " + sdkResult);        
+#endif
+        Debug.Log("TrackingUnityDemo: SDK Result: " + sdkResult);        
         ParseSdkResult();
         
     }
@@ -184,8 +179,6 @@ public class StartStopApp : MonoBehaviour
                 // float yCoord = float.Parse(xy[1]);             
                 xycoords.Add(xCoord);
                 xycoords.Add(yCoord);    
-                // Debug.Log("xCoord: " + i + ": " + xCoord);        
-                // Debug.Log("yCoord: " + i + ": " + yCoord);        
             }
             startStopCamera.SetCoordinatesPoints(xycoords.ToArray());                        
         } else {

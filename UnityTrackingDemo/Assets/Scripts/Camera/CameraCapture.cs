@@ -42,8 +42,8 @@ public class CameraCapture : MonoBehaviour
         // int adjustedHeight = IMAGE_SIZE; 
         int adjustedWidth = cameraTexture.width / 2;
         int adjustedHeight = cameraTexture.height / 2; 
-        Debug.Log("camera texture adjustedWidth: "+ adjustedWidth);
-        Debug.Log("camera texture adjustedHeight: "+ adjustedHeight);
+        Debug.Log("TrackingUnityDemo: Camera texture adjustedWidth: " + adjustedWidth);
+        Debug.Log("TrackingUnityDemo: Camera texture adjustedHeight: " + adjustedHeight);
 
 #if UNITY_ANDROID
         if (!cachedTex2D)

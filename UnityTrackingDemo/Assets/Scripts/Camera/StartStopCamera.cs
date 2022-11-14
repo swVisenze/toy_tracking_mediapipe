@@ -291,7 +291,7 @@ public class StartStopCamera : MonoBehaviour
         WebCamDevice[] devices = WebCamTexture.devices;
         if (devices.Length == 0)
         {
-            Debug.Log("No cameras found on this device!");
+            Debug.Log("TrackingUnityDemo: No cameras found on this device!");
             return;
         }
 
@@ -316,13 +316,13 @@ public class StartStopCamera : MonoBehaviour
             if (frontCam != null) {
                 UseFrontCamera();            
             } else {
-                Debug.Log("No front camera available");
+                Debug.Log("TrackingUnityDemo: No front camera available");
             } 
         } else {
             if (backCam != null) {
                 UseBackCamera();
             } else {
-                Debug.Log("No back camera available");
+                Debug.Log("TrackingUnityDemo: No back camera available");
             }
         }   
 
@@ -366,7 +366,7 @@ public class StartStopCamera : MonoBehaviour
                 return webcamTex;
             // deallocate
             else
-                Debug.Log("Allocate new webcam texture");
+                Debug.Log("TrackingUnityDemo: Allocate new webcam texture");
                 UnityEngine.Object.Destroy(webcamTex);
         }
         // allocate
@@ -395,10 +395,10 @@ public class StartStopCamera : MonoBehaviour
         {
             if (displayTex.width == w && displayTex.height == h)
                 return displayTex;
-            // deallocate
             else
-                Debug.Log("Allocate new display texture");            
-                UnityEngine.Object.Destroy(displayTex);
+                Debug.Log("TrackingUnityDemo: Allocate new display texture");
+            // deallocate
+            UnityEngine.Object.Destroy(displayTex);
         }
         // allocate
         return new Texture2D(w, h, TextureFormat.RGB24, false);
