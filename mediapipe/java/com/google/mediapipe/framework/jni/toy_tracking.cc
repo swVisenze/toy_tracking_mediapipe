@@ -53,21 +53,23 @@ JNIEXPORT void JNICALL TOY_TRACKING_OUTPUT_METHOD(nativeInit)(
     mediapipe::AssetManager* asset_manager =
             Singleton<mediapipe::AssetManager>::get();
     absl::StatusOr<std::string> result = asset_manager->CachedFileFromAsset(BINARY_GRAPH_NAME);
-    LOG(INFO) <<"get cached file: "<< result.ok();
+    LOG(INFO) <<"TrackingAndroidSDK: get cached file: "<< result.ok();
     std::string graph_path = result.value();
 
     std::string graph_config_string;
     absl::Status status =
             mediapipe::file::GetContents(graph_path, &graph_config_string);
-    LOG(INFO) << "nativeInit load binary graph at: "<<graph_path << "is ok ?: " <<status.ok();
+    LOG(INFO) << "TrackingAndroidSDK: nativeInit load binary graph at: "<<graph_path << "is ok ?: " <<status.ok();
     if (!graph_config.ParseFromArray(graph_config_string.c_str(),
                                      graph_config_string.length())) {
-        LOG(INFO) <<"graph config parse failed!!!";
+        LOG(ERROR) <<"TrackingAndroidSDK: graph config parse failed!!!";
     }
 }
 
 JNIEXPORT void JNICALL TOY_TRACKING_OUTPUT_METHOD(nativeDestroy)(
         JNIEnv* env, jobject thiz) {
+    LOG(INFO) << "TrackingAndroidSDK: call destroy";
+
     image_width = 0;
     image_height = 0;
     is_graph_running = false;
@@ -88,16 +90,16 @@ JNIEXPORT bool toy_tracking_reset(int frames) {
     if(is_graph_running) {
         absl::Status status = graph->CloseAllInputStreams();
         graph->Cancel();
-//        LOG(INFO) << "graph cancelled";
+        LOG(INFO) << "TrackingAndroidSDK: graph cancelled";
         poller.reset(nullptr);
     }
     obj_id = -1;
     cur_time_us = 1;
     lost_frames = 0;
     graph.reset(new mediapipe::CalculatorGraph());
-//    LOG(INFO) <<"graph reset with new object";
+    LOG(INFO) <<"TrackingAndroidSDK: graph reset with new object";
     absl::Status status = graph->Initialize(graph_config);
-//    LOG(INFO) <<"graph initialized: "<< status.ok();
+    LOG(INFO) <<"TrackingAndroidSDK: graph initialized: "<< status.ok();
     absl::StatusOr<mediapipe::OutputStreamPoller> result = graph->AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME);
     if(result.ok()) {
         poller = std::make_unique<mediapipe::OutputStreamPoller>(std::move(result.value()));
@@ -107,23 +109,23 @@ JNIEXPORT bool toy_tracking_reset(int frames) {
         is_graph_running = status.ok();
 //        LOG(INFO) << "StartRunningGraph running: " << is_graph_running;
         return is_graph_running;
-    } else {
-        return false;
     }
+    return false;
 }
 
 // this is native method NOT JNI method
 JNIEXPORT const char* toy_tracking_tracking(const unsigned char* image_buffer, int size, int width, int height) {
 //    //buffer is  in RGBA image format
     if(!is_graph_running) {
-        LOG(INFO) << "graph not run yet";
+        LOG(INFO) << "TrackingAndroidSDK: graph not run yet";
         return "";
     }
 
-//    LOG(INFO) << "width: " << width << " height: "<< height << " size: " << size;
+    LOG(INFO) << "TrackingAndroidSDK: buffer size width: "
+        << width << " height: "<< height << " size: " << size;
     const int expected_buffer_size = width * height * 3;
     if (size != expected_buffer_size) {
-        LOG(INFO) << "unmatched size, expected size: " << expected_buffer_size;
+        LOG(ERROR) << "TrackingAndroidSDK: unmatched size, expected size: " << expected_buffer_size;
         return "";
     }
     // create image frame, format RGBA
@@ -138,16 +140,16 @@ JNIEXPORT const char* toy_tracking_tracking(const unsigned char* image_buffer, i
 //            (double)cv::getTickCount() / (double)cv::getTickFrequency() * 1e6;
     cur_time_us = cur_time_us + time_gap_us;
     mediapipe::Packet packet = mediapipe::Adopt(image_frame.release()).At(mediapipe::Timestamp(cur_time_us));
-//    LOG(INFO) << "input frame_timestamp_us: " << cur_time_us;
+    LOG(INFO) << "TrackingAndroidSDK: input frame_timestamp_us: " << cur_time_us;
     // send packet to graph
     graph->AddPacketToInputStream(INPUT_VIDEO_STREAM_NAME, packet);
 
     mediapipe::Packet output_packet;
     if (!poller->Next(&output_packet)) {
-        LOG(INFO) << "cannot get output packet";
+        LOG(ERROR) << "TrackingAndroidSDK: cannot get output packet";
         return "";
     }
-//    LOG(INFO) << "output packet: "<<output_packet.DebugString();
+    LOG(INFO) << "TrackingAndroidSDK: output packet: "<<output_packet.DebugString();
     auto& out_detections = output_packet.Get<std::vector<mediapipe::Detection>>();
 
     std::string status;
@@ -169,12 +171,13 @@ JNIEXPORT const char* toy_tracking_tracking(const unsigned char* image_buffer, i
         auto& relative_bbox = detection.location_data().relative_bounding_box();
         float min_x = relative_bbox.xmin();
         float min_y = relative_bbox.ymin();
-//        LOG(INFO) <<"min_x: "<< min_x << " min_y: "<<min_y;
         float max_x = min_x + relative_bbox.width();
         float max_y = min_y + relative_bbox.height();
-//        LOG(INFO) <<"max_x: "<< max_x << " max_y: "<<max_y;
 
-        track_box = std::to_string(min_x) + "," + std::to_string(min_y) + ";" + std::to_string(max_x) + "," + std::to_string(max_y);
+        track_box = std::to_string(min_x)
+                + "," + std::to_string(min_y)
+                + ";" + std::to_string(max_x)
+                + "," + std::to_string(max_y);
         debug_message = detection.track_id();
         obj_id = detection.detection_id();
     } else {
@@ -187,17 +190,14 @@ JNIEXPORT const char* toy_tracking_tracking(const unsigned char* image_buffer, i
         track_box = "";
         debug_message = "NO DETECTION OUTPUT";
     }
-//    LOG(INFO) <<"obj_id: "<< obj_id;
     auto jsonObj = JSON::object();
     jsonObj["status"] = status;
     jsonObj["track_box"] = track_box;
     jsonObj["debug_message"] = debug_message;
     std::string jsonStr = jsonObj.dump();
-//    LOG(INFO) <<"json output: "<< jsonStr;
+    LOG(INFO) <<"TrackingAndroidSDK: json output: "<< jsonStr;
     // so strange this can output to unity ...
     std::string dump = "" + jsonStr;
-//    char* output = (char*)malloc(dump.length() + 1);
-//    strcpy(output, dump.c_str());
     const char *output = dump.c_str();
     return output;
  }
