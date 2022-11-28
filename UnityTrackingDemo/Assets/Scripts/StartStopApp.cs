@@ -51,7 +51,9 @@ public class StartStopApp : MonoBehaviour
     // if recognition is running
     private bool isRunning = false;
 
-    private bool initFrame = false; 
+    private bool initFrame = false;
+
+    private bool isInitialized = false;
 
 
 
@@ -209,6 +211,7 @@ public class StartStopApp : MonoBehaviour
         if (isRunning) {
             timer = 0.0f;
             initFrame = true;
+            isInitialized = true;
             // cameraCapture.CaptureTexture();            
             // refresh reset.            
             string input = bufferFrameInput.text;
