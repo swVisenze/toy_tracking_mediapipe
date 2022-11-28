@@ -187,10 +187,10 @@ JNIEXPORT const char* toy_tracking_tracking(const unsigned char* image_buffer, i
         obj_id = detection.detection_id();
     } else {
         lost_frames += 1;
-        if(lost_frames > buffer_frames) {
-            status = STATUS_LOST;
+        if (obj_id > 0) {
+            status = lost_frames > buffer_frames ? STATUS_LOST : STATUS_SEARCHING;
         } else {
-            status = STATUS_SEARCHING;
+            status = STATUS_INIT;
         }
         track_box = "";
         debug_message = "NO DETECTION OUTPUT";

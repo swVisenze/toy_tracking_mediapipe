@@ -203,11 +203,7 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     } else {
         if(obj_id > 0) {
             lost_frames += 1;
-            if(lost_frames > buffer_frames) {
-                status = STATUS_LOST;
-            } else {
-                status = STATUS_SEARCHING;
-            }
+            status = lost_frames > buffer_frames ? STATUS_LOST : STATUS_SEARCHING;
         } else {
             status = STATUS_INIT;
         }
@@ -220,12 +216,9 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     jsonObj["debug_message"] = debug_message;
     std::string jsonStr = jsonObj.dump();
     LOG(INFO) <<"TrackingiOSSDK: json output: "<< jsonStr;
-
     NSString* result = [NSString stringWithUTF8String:jsonStr.c_str()];
     return result;
 }
-
-
 @end
 
 
