@@ -72,15 +72,20 @@ JNIEXPORT void JNICALL TOY_TRACKING_OUTPUT_METHOD(nativeDestroy)(
 
     image_width = 0;
     image_height = 0;
-    is_graph_running = false;
     obj_id = -1;
     cur_time_us = 1;
     lost_frames = 0;
     buffer_frames = 20;
-    graph->CloseAllInputStreams();
-//    graph->WaitUntilDone();
-    graph->Cancel();
+    if (is_graph_running) {
+        LOG(INFO) << "TrackingAndroidSDK: close Graph: close all input Streams";
+        graph->CloseAllInputStreams();
+        //  graph->WaitUntilDone();
+        LOG(INFO) << "TrackingAndroidSDK: close Graph: cancel the graph";
+        graph->Cancel();
+    }
     graph.reset(nullptr);
+    is_graph_running = false;
+    LOG(INFO) << "TrackingAndroidSDK: release the poller";
     poller.reset(nullptr);
 }
 

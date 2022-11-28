@@ -75,15 +75,22 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     LOG(INFO) << "TrackingiOSSDK: toy_tracking_destroy ";
     image_width = 0;
     image_height = 0;
-    is_graph_running = false;
     obj_id = -1;
     cur_time_us = 1;
     lost_frames = 0;
     buffer_frames = 20;
-    graph->CloseAllInputStreams();
-//    graph->WaitUntilDone();
-    graph->Cancel();
+
+    if (is_graph_running) {
+        LOG(INFO) << "TrackingiOSSDK: closing Graph: close all input streams";
+        graph->CloseAllInputStreams();
+        // graph->WaitUntilDone();
+        LOG(INFO) << "TrackingiOSSDK: closing Graphs: abort the graph";
+        graph->Cancel();
+    }
     graph.reset(nullptr);
+    is_graph_running = false;
+
+    LOG(INFO) << "TrackingiOSSDK: toy_tracking_destroy close poller";
     poller.reset(nullptr);
 }
 
@@ -103,6 +110,7 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     LOG(INFO) <<"TrackingiOSSDK: graph reset with new object";
     absl::Status status = graph->Initialize(graph_config);
     LOG(INFO) <<"TrackingiOSSDK: graph initialized: "<< status.ok();
+
     absl::StatusOr<mediapipe::OutputStreamPoller> result = graph->AddOutputStreamPoller(OUTPUT_TRACKED_DETECTION_STREAM_NAME);
     if(result.ok()) {
         poller = std::make_unique<mediapipe::OutputStreamPoller>(std::move(result.value()));
