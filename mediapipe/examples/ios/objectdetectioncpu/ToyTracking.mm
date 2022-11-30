@@ -48,6 +48,7 @@ std::unique_ptr<mediapipe::OutputStreamPoller> poller;
     // Temp way to turn on/off loggings from mediapipe
     // set it to 100 to turn off.
     FLAGS_minloglevel = -1;
+    FLAGS_v = 50;
     image_width = width;
     image_height = height;
     NSBundle* bundle = [NSBundle bundleForClass:[self class]];
