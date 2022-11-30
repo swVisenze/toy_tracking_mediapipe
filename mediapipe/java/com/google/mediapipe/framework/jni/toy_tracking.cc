@@ -45,6 +45,8 @@ JNIEXPORT void JNICALL TOY_TRACKING_OUTPUT_METHOD(nativeInit)(
         JNIEnv* env, jobject thiz, jint jwidth, jint jheight) {
     image_width = jwidth;
     image_height = jheight;
+    FLAGS_minloglevel = 100;
+
 //    jbyte* data_ptr = env->GetByteArrayElements(data, nullptr);
 //    int size = env->GetArrayLength(data);
 //    absl::Status status =
