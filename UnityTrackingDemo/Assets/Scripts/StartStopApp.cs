@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Globalization;
 using UnityEngine;
 using Unity.Collections;
 using UnityEngine.UI;
@@ -170,18 +171,22 @@ public class StartStopApp : MonoBehaviour
     {
         ToyInfo info = ToyInfo.CreateFromJson(sdkResult);
         if(info.status == "tracking") {
-            Debug.Log("status tracking");
+            Debug.Log("TrackingUnityDemo status:  tracking");
             string[] points = info.track_box.Split(';');
-            List<float> xycoords = new List<float>(); 
+            List<float> xycoords = new List<float>();
+            Debug.Log("TrackingUnityDemo parse coord string");
             for(int i=0; i<points.Length; i++) {
                 string[] xy = points[i].Split(',');
-                float xCoord = float.Parse(xy[0]); 
+                Debug.Log("TrackingUnityDemo: (string parse): x=" + xy[0] + ", y=" + xy[1]);
+                float xCoord = float.Parse(xy[0], CultureInfo.InvariantCulture); 
                 // y in unity is flipped. 
-                float yCoord = 1f - float.Parse(xy[1]);             
-                // float yCoord = float.Parse(xy[1]);             
+                float yCoord = 1f - float.Parse(xy[1], CultureInfo.InvariantCulture);
+                // float yCoord = float.Parse(xy[1]);
+                Debug.Log("TrackingUnityDemo: x=" + xCoord + ", y=" + yCoord);           
                 xycoords.Add(xCoord);
                 xycoords.Add(yCoord);    
             }
+            Debug.Log("TrackingUnityDemo: set coordinates to camera");
             startStopCamera.SetCoordinatesPoints(xycoords.ToArray());                        
         } else {
             startStopCamera.SetCoordinatesPoints(null);
@@ -194,6 +199,7 @@ public class StartStopApp : MonoBehaviour
         if(result != null) {
             result.text = "status: " + info.status;
         }
+        Debug.Log("TrackingUnityDemo: Finish parsing results");
     }
 
     /// <summary>
