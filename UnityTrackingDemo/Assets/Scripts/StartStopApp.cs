@@ -170,23 +170,19 @@ public class StartStopApp : MonoBehaviour
     private void ParseSdkResult()
     {
         ToyInfo info = ToyInfo.CreateFromJson(sdkResult);
+        Debug.Log("TrackingUnityDemo status: " + info.status);
         if(info.status == "tracking") {
-            Debug.Log("TrackingUnityDemo status:  tracking");
             string[] points = info.track_box.Split(';');
             List<float> xycoords = new List<float>();
-            Debug.Log("TrackingUnityDemo parse coord string");
             for(int i=0; i<points.Length; i++) {
                 string[] xy = points[i].Split(',');
-                Debug.Log("TrackingUnityDemo: (string parse): x=" + xy[0] + ", y=" + xy[1]);
                 float xCoord = float.Parse(xy[0], CultureInfo.InvariantCulture); 
                 // y in unity is flipped. 
                 float yCoord = 1f - float.Parse(xy[1], CultureInfo.InvariantCulture);
                 // float yCoord = float.Parse(xy[1]);
-                Debug.Log("TrackingUnityDemo: x=" + xCoord + ", y=" + yCoord);           
                 xycoords.Add(xCoord);
                 xycoords.Add(yCoord);    
             }
-            Debug.Log("TrackingUnityDemo: set coordinates to camera");
             startStopCamera.SetCoordinatesPoints(xycoords.ToArray());                        
         } else {
             startStopCamera.SetCoordinatesPoints(null);
